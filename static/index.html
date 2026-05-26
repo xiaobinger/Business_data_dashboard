@@ -773,6 +773,7 @@ const scriptColumnsCache={};
 let quickQueries=[];
 let drillStack=[];
 let lastDrillParams=null;
+let _drillLock=false;
 
 let _gridTransitionTimer=null;
 
@@ -924,18 +925,27 @@ function setupChartDrillDown(inst,chartIdx){
   if(!inst)return;
   inst.off('dblclick');
   inst.on('dblclick',function(params){
-    if(!params||params.componentType!=='series')return;
+    if(_drillLock)return;
+    if(!params)return;
     const configs=getChartConfigs();
     const cfg=configs[chartIdx];
     if(!cfg||!cfg.xCol)return;
     if(!lastQueryResult)return;
     const xData=inst.getOption().xAxis?inst.getOption().xAxis[0].data:null;
     const dim=detectXColDimension(cfg.xCol,xData);
+    if(!dim){toast('横轴非日期维度，无法下钻','info');return}
     let targetDim=null;
     if(dim==='year')targetDim='month';
     else if(dim==='month')targetDim='day';
     else{toast('当前已是按天维度，无法继续下钻','info');return}
-    const clickedValue=String(params.name);
+    let clickedValue='';
+    if(params.componentType==='series'){
+      clickedValue=String(params.name);
+    }else if(params.componentType==='xAxis'){
+      clickedValue=String(params.value);
+    }else{
+      return;
+    }
     let startDate='',endDate='',drillLabel='';
     if(dim==='year'){
       const year=parseInt(clickedValue);
@@ -944,7 +954,7 @@ function setupChartDrillDown(inst,chartIdx){
       drillLabel=`${year}年 → 按月`;
     }else if(dim==='month'){
       const parts=clickedValue.match(/^(\d{4})[-\/](\d{1,2})$/);
-      if(!parts)return;
+      if(!parts){toast('无法识别月份格式','info');return}
       const y=parseInt(parts[1]),m=parseInt(parts[2]);
       const lastDay=new Date(y,m,0).getDate();
       startDate=`${y}-${String(m).padStart(2,'0')}-01`;
@@ -957,7 +967,19 @@ function setupChartDrillDown(inst,chartIdx){
       dpYear,dpMonth,dpYearStart,dpYearEnd,
       label:drillLabel
     });
+    _drillLock=true;
     executeDrillDown(targetDim,startDate,endDate);
+  });
+  inst.on('click',function(params){
+    if(!params||!lastQueryResult)return;
+    const configs=getChartConfigs();
+    const cfg=configs[chartIdx];
+    if(!cfg||!cfg.xCol)return;
+    const xData=inst.getOption().xAxis?inst.getOption().xAxis[0].data:null;
+    const dim=detectXColDimension(cfg.xCol,xData);
+    if(dim&&dim!=='day'){
+      inst.getZr().setCursorStyle('pointer');
+    }
   });
 }
 
@@ -992,7 +1014,7 @@ async function executeDrillDown(targetDim,startDate,endDate,forceRefresh){
     updateDatePickerLabel();renderDatePicker();
     document.querySelectorAll('.dim-btn').forEach(b=>{b.classList.toggle('active',b.textContent.includes(targetDim==='day'?'天':targetDim==='month'?'月':'年'))});
     updateDrillBreadcrumb();
-  }catch(e){lastQueryResult=null;showErrorPanel(e.message,e.traceback||'');const _g=document.getElementById('chartGrid');if(_g){_g.classList.remove('fading-out','fading-in');const _sh=_g.querySelector('.grid-loading-overlay');if(_sh)_sh.remove()}}finally{btn.classList.remove('loading');btn.innerHTML='▶  执行查询';document.querySelector('.sidebar-body').classList.remove('querying')}
+  }catch(e){lastQueryResult=null;showErrorPanel(e.message,e.traceback||'');const _g=document.getElementById('chartGrid');if(_g){_g.classList.remove('fading-out','fading-in');const _sh=_g.querySelector('.grid-loading-overlay');if(_sh)_sh.remove()}}finally{_drillLock=false;btn.classList.remove('loading');btn.innerHTML='▶  执行查询';document.querySelector('.sidebar-body').classList.remove('querying')}
 }
 
 function drillUp(){
@@ -1466,7 +1488,7 @@ async function executeQuery(fromQuickQuery,fromDrill,forceRefresh){
     if(hasPreConfig){applyPreQueryConfig(savedConfigs,result)}
     else{autoAssignColumns(result);if(currentMergeMode==='aggregate'&&getMergeKey()){applyMergeKeyAsX(getMergeKey())}}
     applyLayout();
-  }catch(e){lastQueryResult=null;showErrorPanel(e.message,e.traceback||'');const _g=document.getElementById('chartGrid');if(_g){_g.classList.remove('fading-out','fading-in');const _sh=_g.querySelector('.grid-loading-overlay');if(_sh)_sh.remove()}}finally{btn.classList.remove('loading');btn.innerHTML='▶  执行查询';document.querySelector('.sidebar-body').classList.remove('querying')}
+  }catch(e){lastQueryResult=null;showErrorPanel(e.message,e.traceback||'');const _g=document.getElementById('chartGrid');if(_g){_g.classList.remove('fading-out','fading-in');const _sh=_g.querySelector('.grid-loading-overlay');if(_sh)_sh.remove()}}finally{_drillLock=false;btn.classList.remove('loading');btn.innerHTML='▶  执行查询';document.querySelector('.sidebar-body').classList.remove('querying')}
 }
 
 function autoAssignColumns(result){
@@ -1523,6 +1545,7 @@ function applyMergeKeyAsX(mergeKey){
 
 function renderMultiChart(result,configs){
   document.getElementById('errorPanel').style.display='none';
+  if(_gridTransitionTimer){clearTimeout(_gridTransitionTimer);_gridTransitionTimer=null}
   Object.keys(chartAnimTimers).forEach(k=>{if(!k.includes('_restart'))stopChartAnim(k)});
   const savedFilters={};
   document.querySelectorAll('select[data-role="source"]').forEach(el=>{const ci=el.dataset.chart;if(ci!==undefined)savedFilters[ci]={source:el.value}});
