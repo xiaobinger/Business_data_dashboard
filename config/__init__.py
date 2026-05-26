@@ -6,9 +6,6 @@ APP_VERSION = "1.0.0"
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 CONFIG_FILE = os.path.join(DATA_DIR, "app_config.json")
-SCRIPTS_FILE = os.path.join(DATA_DIR, "scripts.json")
-QUICK_QUERIES_FILE = os.path.join(DATA_DIR, "quick_queries.json")
-QUERY_CACHE_FILE = os.path.join(DATA_DIR, "query_cache.json")
 
 SUPPORTED_DB_TYPES = ["mysql", "postgresql", "sqlite"]
 
@@ -42,6 +39,7 @@ DEFAULT_APP_CONFIG = {
         "username": "nacos",
         "password": "nacos",
         "redis_data_id": "data_dashboard_redis",
+        "meta_data_id": "data_dashboard_meta",
     },
     "cache_ttl": 3600,
 }
@@ -74,6 +72,20 @@ def get_redis_config():
     return None
 
 
+def get_meta_db_config():
+    from core.nacos_config import load_meta_db_config
+    nacos_meta = load_meta_db_config()
+    if nacos_meta and isinstance(nacos_meta, dict):
+        return {
+            "host": os.environ.get("META_DB_HOST", nacos_meta.get("host", "localhost")),
+            "port": int(os.environ.get("META_DB_PORT", nacos_meta.get("port", 3306))),
+            "username": os.environ.get("META_DB_USER", nacos_meta.get("username", "")),
+            "password": os.environ.get("META_DB_PASSWORD", nacos_meta.get("password", "")),
+            "database": os.environ.get("META_DB_NAME", nacos_meta.get("database", "data_dashboard_meta")),
+        }
+    return None
+
+
 def get_nacos_config():
     cfg = load_app_config()["nacos"]
     return {
@@ -84,6 +96,7 @@ def get_nacos_config():
         "username": os.environ.get("NACOS_USERNAME", cfg.get("username", "")),
         "password": os.environ.get("NACOS_PASSWORD", cfg.get("password", "")),
         "redis_data_id": os.environ.get("NACOS_REDIS_DATA_ID", cfg.get("redis_data_id", "data_dashboard_redis")),
+        "meta_data_id": os.environ.get("NACOS_META_DATA_ID", cfg.get("meta_data_id", "data_dashboard_meta")),
     }
 
 

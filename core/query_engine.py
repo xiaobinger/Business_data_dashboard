@@ -3,8 +3,9 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, List, Tuple
 import pandas as pd
 from sqlalchemy import text
-from config import DIMENSION_DATE_FORMATS, DIMENSION_DAY,DIMENSION_MONTH,DIMENSION_YEAR, SCRIPTS_FILE, load_json, save_json
+from config import DIMENSION_DATE_FORMATS, DIMENSION_DAY,DIMENSION_MONTH,DIMENSION_YEAR
 from core.db_manager import DatabaseManager
+from core import meta_store
 
 
 PARAM_PATTERN = re.compile(r"\{\{(\w+)\}\}")
@@ -49,49 +50,20 @@ class ScriptConfig:
 class QueryEngine:
     def __init__(self, db_manager: DatabaseManager):
         self.db_manager = db_manager
-        self._scripts: Dict[str, ScriptConfig] = {}
-        self._load_scripts()
-
-    def _load_scripts(self):
-        data = load_json(SCRIPTS_FILE, [])
-        for item in data:
-            script = ScriptConfig.from_dict(item)
-            self._scripts[script.name] = script
-
-    def _save_scripts(self):
-        data = [s.to_dict() for s in self._scripts.values()]
-        save_json(SCRIPTS_FILE, data)
-
-    def add_script(self, script: ScriptConfig) -> bool:
-        if script.name in self._scripts:
-            return False
-        self._scripts[script.name] = script
-        self._save_scripts()
-        return True
-
-    def update_script(self, old_name: str, script: ScriptConfig) -> bool:
-        if old_name not in self._scripts:
-            return False
-        self._scripts.pop(old_name)
-        self._scripts[script.name] = script
-        self._save_scripts()
-        return True
-
-    def remove_script(self, name: str) -> bool:
-        if name not in self._scripts:
-            return False
-        self._scripts.pop(name)
-        self._save_scripts()
-        return True
 
     def get_script(self, name: str) -> Optional[ScriptConfig]:
-        return self._scripts.get(name)
+        data = meta_store.get_script(name)
+        if data:
+            return ScriptConfig.from_dict(data)
+        return None
 
     def get_all_scripts(self) -> List[ScriptConfig]:
-        return list(self._scripts.values())
+        data_list = meta_store.list_scripts()
+        return [ScriptConfig.from_dict(d) for d in data_list]
 
     def get_script_names(self) -> List[str]:
-        return list(self._scripts.keys())
+        data_list = meta_store.list_scripts()
+        return [d["name"] for d in data_list]
 
     @staticmethod
     def render_sql(sql: str, params: Dict[str, Any]) -> str:

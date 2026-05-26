@@ -220,6 +220,33 @@ def save_redis_config(redis_cfg):
     )
 
 
+def load_meta_db_config():
+    if not _init_nacos_client():
+        return None
+    cfg = get_nacos_config()
+    meta_data_id = cfg.get("meta_data_id", "data_dashboard_meta")
+    content = _nacos_get_config(meta_data_id, cfg.get("group", "DEFAULT_GROUP"))
+    if content:
+        try:
+            return json.loads(content)
+        except json.JSONDecodeError:
+            logger.error("Nacos 元数据库配置 JSON 解析失败")
+    return None
+
+
+def save_meta_db_config(meta_cfg):
+    if not _init_nacos_client():
+        logger.error("Nacos 不可用，无法保存元数据库配置")
+        return
+    cfg = get_nacos_config()
+    meta_data_id = cfg.get("meta_data_id", "data_dashboard_meta")
+    _nacos_publish_config(
+        meta_data_id,
+        cfg.get("group", "DEFAULT_GROUP"),
+        json.dumps(meta_cfg, ensure_ascii=False, indent=2),
+    )
+
+
 def reinit_nacos():
     global _nacos_available, _nacos_config_service
     with _nacos_lock:

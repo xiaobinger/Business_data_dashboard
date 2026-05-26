@@ -2,11 +2,12 @@ import json
 import logging
 import traceback
 from flask import Flask, request, jsonify, send_from_directory
-from config import CHART_TYPES, DIMENSIONS, QUICK_QUERIES_FILE, QUERY_CACHE_FILE, load_json, save_json, load_app_config, save_app_config, DEFAULT_APP_CONFIG
+from config import CHART_TYPES, DIMENSIONS, load_app_config, save_app_config, DEFAULT_APP_CONFIG
 from core.db_manager import DatabaseManager, DatabaseConnection
-from core.query_engine import QueryEngine, ScriptConfig, PARAM_PATTERN
+from core.query_engine import QueryEngine, PARAM_PATTERN
 from core.data_merger import DataMerger
 from core.cache import build_cache_key, get_cache, set_cache
+from core import meta_store
 
 logger = logging.getLogger(__name__)
 
@@ -85,31 +86,29 @@ def get_columns(name, table):
 
 @app.route("/api/scripts", methods=["GET"])
 def list_scripts():
-    scripts = query_engine.get_all_scripts()
-    return jsonify([s.to_dict() for s in scripts])
+    return jsonify(meta_store.list_scripts())
 
 
 @app.route("/api/scripts", methods=["POST"])
 def add_script():
     data = request.json
-    script = ScriptConfig.from_dict(data)
-    if query_engine.add_script(script):
-        return jsonify({"ok": True, "name": script.name})
+    name = meta_store.add_script(data)
+    if name:
+        return jsonify({"ok": True, "name": name})
     return jsonify({"ok": False, "error": "脚本名称已存在"}), 400
 
 
 @app.route("/api/scripts/<name>", methods=["PUT"])
 def update_script(name):
     data = request.json
-    script = ScriptConfig.from_dict(data)
-    if query_engine.update_script(name, script):
+    if meta_store.update_script(name, data):
         return jsonify({"ok": True})
     return jsonify({"ok": False, "error": "脚本不存在"}), 404
 
 
 @app.route("/api/scripts/<name>", methods=["DELETE"])
 def delete_script(name):
-    if query_engine.remove_script(name):
+    if meta_store.delete_script(name):
         return jsonify({"ok": True})
     return jsonify({"ok": False, "error": "脚本不存在"}), 404
 
@@ -335,8 +334,7 @@ def get_config():
 
 @app.route("/api/quick-queries", methods=["GET"])
 def list_quick_queries():
-    data = load_json(QUICK_QUERIES_FILE, [])
-    return jsonify(data)
+    return jsonify(meta_store.list_quick_queries())
 
 
 @app.route("/api/quick-queries", methods=["POST"])
@@ -345,65 +343,25 @@ def add_quick_query():
     name = data.get("name", "").strip()
     if not name:
         return jsonify({"ok": False, "error": "请输入名称"}), 400
-    queries = load_json(QUICK_QUERIES_FILE, [])
-    if any(q["name"] == name for q in queries):
-        return jsonify({"ok": False, "error": f"名称 '{name}' 已存在"}), 400
-    queries.append(data)
-    save_json(QUICK_QUERIES_FILE, queries)
-    return jsonify({"ok": True, "name": name})
+    result = meta_store.add_quick_query(data)
+    if result:
+        return jsonify({"ok": True, "name": result})
+    return jsonify({"ok": False, "error": f"名称 '{name}' 已存在"}), 400
 
 
 @app.route("/api/quick-queries/<name>", methods=["PUT"])
 def update_quick_query(name):
     data = request.json
-    queries = load_json(QUICK_QUERIES_FILE, [])
-    for i, q in enumerate(queries):
-        if q["name"] == name:
-            new_name = data.get("name", name)
-            if new_name != name and any(q2["name"] == new_name for q2 in queries):
-                return jsonify({"ok": False, "error": f"名称 '{new_name}' 已存在"}), 400
-            queries[i] = data
-            save_json(QUICK_QUERIES_FILE, queries)
-            return jsonify({"ok": True})
+    if meta_store.update_quick_query(name, data):
+        return jsonify({"ok": True})
     return jsonify({"ok": False, "error": "不存在"}), 404
 
 
 @app.route("/api/quick-queries/<name>", methods=["DELETE"])
 def delete_quick_query(name):
-    queries = load_json(QUICK_QUERIES_FILE, [])
-    new_queries = [q for q in queries if q["name"] != name]
-    if len(new_queries) == len(queries):
-        return jsonify({"ok": False, "error": "不存在"}), 404
-    save_json(QUICK_QUERIES_FILE, new_queries)
-    cache = load_json(QUERY_CACHE_FILE, {})
-    cache.pop(name, None)
-    save_json(QUERY_CACHE_FILE, cache)
-    return jsonify({"ok": True})
-
-
-@app.route("/api/query-cache/<name>", methods=["GET"])
-def get_query_cache(name):
-    cache = load_json(QUERY_CACHE_FILE, {})
-    if name in cache:
-        return jsonify({"ok": True, "data": cache[name]})
-    return jsonify({"ok": False, "error": "无缓存"}), 404
-
-
-@app.route("/api/query-cache/<name>", methods=["POST"])
-def save_query_cache(name):
-    data = request.json
-    cache = load_json(QUERY_CACHE_FILE, {})
-    cache[name] = data
-    save_json(QUERY_CACHE_FILE, cache)
-    return jsonify({"ok": True})
-
-
-@app.route("/api/query-cache/<name>", methods=["DELETE"])
-def delete_query_cache(name):
-    cache = load_json(QUERY_CACHE_FILE, {})
-    cache.pop(name, None)
-    save_json(QUERY_CACHE_FILE, cache)
-    return jsonify({"ok": True})
+    if meta_store.delete_quick_query(name):
+        return jsonify({"ok": True})
+    return jsonify({"ok": False, "error": "不存在"}), 404
 
 
 @app.route("/api/app-config", methods=["GET"])
@@ -433,7 +391,12 @@ def update_app_config():
         redis_ok = reinit_redis()
     except Exception as e:
         logger.warning("重连 Redis 失败: %s", e)
-    return jsonify({"ok": True, "redis_connected": redis_ok, "nacos_connected": nacos_ok})
+    meta_ok = False
+    try:
+        meta_ok = meta_store.reinit_meta_store()
+    except Exception as e:
+        logger.warning("重连元数据库失败: %s", e)
+    return jsonify({"ok": True, "redis_connected": redis_ok, "nacos_connected": nacos_ok, "meta_db_connected": meta_ok})
 
 
 @app.route("/api/app-config/test-redis", methods=["POST"])

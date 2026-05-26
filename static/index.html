@@ -1466,9 +1466,6 @@ async function executeQuery(fromQuickQuery,fromDrill,forceRefresh){
     if(hasPreConfig){applyPreQueryConfig(savedConfigs,result)}
     else{autoAssignColumns(result);if(currentMergeMode==='aggregate'&&getMergeKey()){applyMergeKeyAsX(getMergeKey())}}
     applyLayout();
-    if(fromQuickQuery&&_lastAppliedQQName){
-      try{await api(`/api/query-cache/${encodeURIComponent(_lastAppliedQQName)}`,{method:'POST',body:result})}catch(e){}
-    }
   }catch(e){lastQueryResult=null;showErrorPanel(e.message,e.traceback||'');const _g=document.getElementById('chartGrid');if(_g){_g.classList.remove('fading-out','fading-in');const _sh=_g.querySelector('.grid-loading-overlay');if(_sh)_sh.remove()}}finally{btn.classList.remove('loading');btn.innerHTML='▶  执行查询';document.querySelector('.sidebar-body').classList.remove('querying')}
 }
 
@@ -2240,9 +2237,6 @@ async function saveQuickQuery(){
   const config=getCurrentQueryConfig();config.name=name;
   try{
     await api('/api/quick-queries',{method:'POST',body:config});
-    if(lastQueryResult){
-      try{await api(`/api/query-cache/${encodeURIComponent(name)}`,{method:'POST',body:lastQueryResult})}catch(e){}
-    }
     toast('快捷查询已保存','success');
     closeSaveQuickQueryModal();
     await loadQuickQueries();
@@ -2290,34 +2284,7 @@ async function applyQuickQuery(name,forceRefresh){
       if(cfg.chartType){document.querySelectorAll(`.cfg-type-btn[data-chart="${i}"]`).forEach(b=>{b.classList.toggle('active',b.dataset.type===cfg.chartType)})}
     });
   }
-  if(!forceRefresh){
-    try{
-      const cached=await api(`/api/query-cache/${encodeURIComponent(name)}`);
-      if(cached&&cached.ok&&cached.data){
-        hideErrorPanel();lastQueryResult=cached.data;
-        scriptColumnsCache[currentScriptName]=cached.data.columns.filter(c=>!META_COLS.has(c));
-        const mergeNames=getMergeNames();
-        if(mergeNames.length>1){buildMergeKeySelect();buildHideFieldsGrid()}
-        const savedChartConfigs=q.chartConfigs||[];
-        buildChartCfgCards();
-        if(savedChartConfigs.length){
-          savedChartConfigs.forEach((cfg,i)=>{
-            if(i>=layoutCount)return;
-            const xEl=document.getElementById(`cfgX_${i}`);if(xEl&&cfg.xCol){const opts=[...xEl.options].map(o=>o.value);if(opts.includes(cfg.xCol))xEl.value=cfg.xCol}
-            if(cfg.yCols&&cfg.yCols.length){document.querySelectorAll(`.y-col-chip[data-chart="${i}"]`).forEach(el=>{el.classList.toggle('selected',cfg.yCols.includes(el.dataset.col))})}
-            if(cfg.chartType){document.querySelectorAll(`.cfg-type-btn[data-chart="${i}"]`).forEach(b=>{b.classList.toggle('active',b.dataset.type===cfg.chartType)})}
-          });
-        }else{
-          autoAssignColumns(cached.data);
-          if(currentMergeMode==='aggregate'&&getMergeKey()){applyMergeKeyAsX(getMergeKey())}
-        }
-        applyLayout();
-        toast('已从缓存加载','success');
-        return;
-      }
-    }catch(e){}
-  }
-  executeQuery(true);
+  executeQuery(!forceRefresh);
 }
 
 function editQuickQuery(name){
@@ -2332,10 +2299,6 @@ function editQuickQuery(name){
     const config=getCurrentQueryConfig();config.name=newName;
     try{
       await api(`/api/quick-queries/${encodeURIComponent(name)}`,{method:'PUT',body:config});
-      if(lastQueryResult){
-        try{await api(`/api/query-cache/${encodeURIComponent(newName)}`,{method:'POST',body:lastQueryResult})}catch(e){}
-        if(newName!==name){try{await api(`/api/query-cache/${encodeURIComponent(name)}`,{method:'DELETE'})}catch(e){}}
-      }
       toast('快捷查询已更新','success');
       closeSaveQuickQueryModal();
       saveQuickQuery=originalSave;
