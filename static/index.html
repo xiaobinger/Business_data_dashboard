@@ -419,22 +419,82 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .loading-dot{display:inline-block;animation:pulse 1.2s infinite}
 .loading-dot:nth-child(2){animation-delay:.2s}
 .loading-dot:nth-child(3){animation-delay:.4s}
+
+.login-overlay{position:fixed;inset:0;z-index:3000;display:flex;align-items:center;justify-content:center;background:var(--bg-deep);animation:fadeIn .4s}
+.login-overlay::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 15% 50%,var(--glow1),transparent 55%),radial-gradient(ellipse at 85% 20%,var(--glow2),transparent 50%),radial-gradient(ellipse at 50% 85%,var(--glow3),transparent 45%);pointer-events:none}
+.login-box{position:relative;width:380px;padding:36px 32px 28px;background:var(--bg-panel);border:1px solid var(--border);border-radius:16px;backdrop-filter:blur(24px);box-shadow:0 24px 80px rgba(0,0,0,0.5);animation:slideUp .4s}
+.login-box h2{font-size:20px;font-weight:700;text-align:center;margin-bottom:6px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.login-box .login-sub{text-align:center;font-size:12px;color:var(--text-dim);margin-bottom:24px}
+.login-box .form-group{margin-bottom:14px}
+.login-box .form-group label{display:block;font-size:11px;color:var(--text-dim);margin-bottom:4px;font-weight:500}
+.login-box .form-group input{width:100%;background:var(--bg-card);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;outline:none;transition:border-color .2s}
+.login-box .form-group input:focus{border-color:var(--border-focus)}
+.login-btn{width:100%;padding:11px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;transition:all .3s;margin-top:4px}
+.login-btn:hover{box-shadow:0 4px 20px rgba(0,212,255,0.3);transform:translateY(-1px)}
+.login-btn:active{transform:translateY(0)}
+.login-btn:disabled{opacity:.5;pointer-events:none}
+.login-error{font-size:11px;color:var(--red);text-align:center;margin-top:8px;min-height:16px}
+
+.user-info{display:flex;align-items:center;gap:8px;margin-left:auto;margin-right:8px}
+.user-info .user-name{font-size:11px;color:var(--text);font-weight:500;white-space:nowrap}
+.user-info .user-avatar{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.user-logout-btn{background:var(--glass);border:1px solid var(--border);border-radius:6px;color:var(--text-dim);font-size:11px;cursor:pointer;padding:2px 10px;transition:all .2s;white-space:nowrap}
+.user-logout-btn:hover{color:var(--red);border-color:var(--red);background:rgba(239,68,68,0.1)}
+.user-manage-btn{background:var(--glass);border:1px solid var(--border);border-radius:6px;color:var(--text-dim);font-size:16px;cursor:pointer;padding:2px 8px;transition:all .3s;line-height:1}
+.user-manage-btn:hover{color:var(--accent);border-color:var(--accent);background:var(--glass-hover)}
+
+.um-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:14px}
+.um-tab{flex:1;padding:8px 0;text-align:center;font-size:12px;font-weight:600;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.um-tab:hover{color:var(--text);background:var(--glass-hover)}
+.um-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.um-panel{display:none}
+.um-panel.active{display:block}
+
+.um-table{width:100%;border-collapse:collapse;font-size:11px}
+.um-table th{background:var(--bg-panel);color:var(--accent);font-weight:600;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;font-size:11px}
+.um-table td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text);white-space:nowrap}
+.um-table tbody tr:hover td{background:var(--glass-hover)}
+.um-table .status-badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600}
+.um-table .status-badge.on{background:rgba(16,185,129,0.15);color:var(--green)}
+.um-table .status-badge.off{background:rgba(239,68,68,0.15);color:var(--red)}
+.um-actions{display:flex;gap:4px}
+.um-actions button{padding:3px 8px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text-dim);font-size:10px;cursor:pointer;transition:all .2s}
+.um-actions button:hover{background:var(--glass-hover);color:var(--text)}
+.um-actions button.del:hover{color:var(--red);border-color:var(--red)}
+.um-add-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border:1px solid var(--border);border-radius:6px;background:var(--glass);color:var(--accent);font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;margin-bottom:10px}
+.um-add-btn:hover{background:rgba(0,212,255,0.1);border-color:var(--accent)}
+
+.perm-checkbox-grid{display:flex;flex-wrap:wrap;gap:6px;max-height:200px;overflow-y:auto;padding:4px 0}
+.perm-checkbox-item{display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;background:var(--glass);font-size:11px;color:var(--text-dim);cursor:pointer;transition:all .2s;border:1px solid transparent;user-select:none}
+.perm-checkbox-item:hover{background:var(--glass-hover)}
+.perm-checkbox-item.checked{background:rgba(0,212,255,0.12);border-color:rgba(0,212,255,0.3);color:var(--accent)}
+.perm-checkbox-item input{display:none}
 </style>
 </head>
 <body>
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <h2>⚡ DataDashboard</h2>
+    <div class="login-sub">请登录以继续</div>
+    <div class="form-group"><label>用户名</label><input type="text" id="loginUsername" placeholder="输入用户名" autocomplete="username"></div>
+    <div class="form-group"><label>密码</label><input type="password" id="loginPassword" placeholder="输入密码" autocomplete="current-password"></div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">登 录</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
 <div class="app">
   <div class="sidebar">
     <div class="sidebar-header"><h1>⚡ DataDashboard</h1><div class="global-theme-picker"><button class="gt-btn active" data-gt="" onclick="setGlobalTheme('',this)" title="深邃暗夜">🌙</button><button class="gt-btn" data-gt="ocean" onclick="setGlobalTheme('ocean',this)" title="午夜深蓝">🌊</button><button class="gt-btn" data-gt="warm" onclick="setGlobalTheme('warm',this)" title="暖夜琥珀">🔥</button><button class="gt-btn" data-gt="light" onclick="setGlobalTheme('light',this)" title="晨光亮色">☀️</button></div><span class="ver">v2.0</span></div>
     <div class="sidebar-body">
-      <div class="section">
+      <div class="section" id="quickQuerySection">
         <div class="section-head"><span class="icon">⚡</span><span class="label">快捷查询</span><button class="btn-icon" onclick="openSaveQuickQueryModal()" title="保存当前配置">＋</button></div>
         <div class="section-body"><div id="quickQueryList" class="quick-query-list"><div class="no-data-hint">查询后可保存为快捷查询</div></div></div>
       </div>
-      <div class="section">
-        <div class="section-head"><span class="icon">🗄</span><span class="label">数据源</span><button class="btn-icon" onclick="openDbModal()" title="新建连接">＋</button><button class="btn-icon" onclick="openDbListModal()" title="管理连接">⚙</button></div>
+      <div class="section" id="datasourceSection">
+        <div class="section-head"><span class="icon">🗄</span><span class="label" id="datasourceLabel">数据源</span><button class="btn-icon" onclick="openDbModal()" title="新建连接">＋</button><button class="btn-icon" onclick="openDbListModal()" title="管理连接">⚙</button></div>
         <div class="section-body">
           <div class="cfg-row"><label>连接</label><select class="sel" id="connSelect"><option value="">选择连接...</option></select></div>
-          <div><label style="font-size:10px;color:var(--text-dim);display:block;margin-bottom:3px">合并数据源</label><div class="merge-grid" id="mergeGrid"></div></div>
+          <div><label id="mergeLabel" style="font-size:10px;color:var(--text-dim);display:block;margin-bottom:3px">合并数据源</label><div class="merge-grid" id="mergeGrid"></div></div>
           <div id="mergeOptions" style="display:none">
             <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">合并方式</div>
             <div class="merge-mode-group">
@@ -451,8 +511,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
           </div>
         </div>
       </div>
-      <div class="section">
-        <div class="section-head"><span class="icon">📝</span><span class="label">脚本</span><button class="btn-icon" onclick="openScriptManager()" title="管理脚本">⚙</button></div>
+      <div class="section" id="scriptSection">
+        <div class="section-head"><span class="icon">📝</span><span class="label" id="scriptLabel">脚本</span><button class="btn-icon" onclick="openScriptManager()" title="管理脚本">⚙</button></div>
         <div class="section-body"><select class="sel" id="scriptSelect" onchange="onScriptSelected()"><option value="">— 选择脚本 —</option></select></div>
       </div>
       <div class="section">
@@ -489,7 +549,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
             <button class="layout-count-btn" onclick="setLayoutCount(4,this)">4</button>
           </div>
           <div class="chart-cfg-cards" id="chartCfgCards">
-            <div class="no-data-hint">选择脚本后可预配置，或查询后自动填充</div>
+            <div class="no-data-hint" id="chartCfgHint">选择脚本后可预配置，或查询后自动填充</div>
           </div>
           <button class="btn-apply" id="btnApplyLayout" onclick="applyLayout()" disabled>✓ 应用布局</button>
         </div>
@@ -505,12 +565,18 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <label class="fmt-toggle"><input type="checkbox" id="fmtToggle" checked onchange="toggleFmt(this.checked)"><span class="fmt-slider"></span><span class="fmt-label">金额格式化</span></label>
       <label class="fmt-toggle"><input type="checkbox" id="animToggle" checked onchange="toggleAnim(this.checked)"><span class="fmt-slider"></span><span class="fmt-label">动画效果</span></label>
       <button class="chart-refresh-btn" id="btnRefreshChart" onclick="refreshChartData()" title="刷新数据">↻</button>
-      <button class="chart-refresh-btn" onclick="openSettingsModal()" title="系统设置">⚙</button>
+      <button class="user-manage-btn" id="btnUserManage" onclick="openUserManageModal()" title="用户管理" style="display:none">👥</button>
+      <button class="chart-refresh-btn" onclick="openSettingsModal()" title="系统设置" id="btnSystemSettings">⚙</button>
+      <div class="user-info" id="userInfoArea" style="display:none">
+        <div class="user-avatar" id="userAvatar"></div>
+        <span class="user-name" id="userDisplayName"></span>
+        <button class="user-logout-btn" onclick="doLogout()">退出</button>
+      </div>
     </div>
     <div id="drillBreadcrumb" class="drill-breadcrumb"></div>
     <div class="chart-grid g1" id="chartGrid">
       <div class="chart-card">
-        <div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">数据看板</div><div class="empty-hint">选择脚本与数据源，点击执行查询</div></div>
+        <div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">数据看板</div><div class="empty-hint" id="mainEmptyHint">选择脚本与数据源，点击执行查询</div></div>
       </div>
     </div>
     <div class="error-panel" id="errorPanel" style="display:none">
@@ -572,7 +638,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div style="flex:1;display:flex;flex-direction:column">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
           <span style="font-size:12px;color:var(--text-dim);font-weight:600">脚本列表</span>
-          <button class="btn btn-primary" style="padding:4px 12px;font-size:11px" onclick="newScriptInModal()">+ 新建</button>
+          <button class="btn btn-primary" style="padding:4px 12px;font-size:11px" onclick="newScriptInModal()" id="btnNewScript">+ 新建</button>
         </div>
         <div class="script-list" id="scriptListInModal"></div>
       </div>
@@ -627,6 +693,53 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   </div>
 </div>
 
+<div class="modal-overlay" id="userManageModal">
+  <div class="modal modal-lg">
+    <div class="modal-head"><h2>👥 用户管理</h2><button class="modal-close" onclick="closeUserManageModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="um-tabs">
+        <div class="um-tab active" onclick="switchUmTab('users',this)">用户管理</div>
+        <div class="um-tab" onclick="switchUmTab('roles',this)">角色管理</div>
+      </div>
+      <div class="um-panel active" id="umUsersPanel">
+        <button class="um-add-btn" onclick="openUserFormModal()">+ 新增用户</button>
+        <div style="overflow-x:auto"><table class="um-table"><thead><tr><th>用户名</th><th>显示名</th><th>角色</th><th>状态</th><th>操作</th></tr></thead><tbody id="umUsersBody"></tbody></table></div>
+      </div>
+      <div class="um-panel" id="umRolesPanel">
+        <button class="um-add-btn" onclick="openRoleFormModal()">+ 新增角色</button>
+        <div style="overflow-x:auto"><table class="um-table"><thead><tr><th>角色名</th><th>描述</th><th>权限</th><th>操作</th></tr></thead><tbody id="umRolesBody"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="userFormModal">
+  <div class="modal modal-sm">
+    <div class="modal-head"><h2 id="userFormTitle">新增用户</h2><button class="modal-close" onclick="closeUserFormModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>用户名</label><input type="text" id="ufUsername" placeholder="输入用户名"></div>
+      <div class="form-group" id="ufPasswordGroup"><label>密码</label><input type="password" id="ufPassword" placeholder="输入密码"></div>
+      <div class="form-group"><label>显示名</label><input type="text" id="ufDisplayName" placeholder="输入显示名"></div>
+      <div class="form-group"><label>是否超管</label><label class="ssh-toggle"><input type="checkbox" id="ufIsSuperAdmin"><div class="toggle-track"></div><span>超管拥有所有权限</span></label></div>
+      <div class="form-group"><label>角色（按住Ctrl多选）</label><select id="ufRole" multiple style="height:80px"></select></div>
+      <div class="form-group"><label>是否启用</label><label class="ssh-toggle"><input type="checkbox" id="ufEnabled" checked><div class="toggle-track"></div><span>启用</span></label></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeUserFormModal()">取消</button><button class="btn btn-primary" onclick="saveUserForm()">保存</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="roleFormModal">
+  <div class="modal modal-sm">
+    <div class="modal-head"><h2 id="roleFormTitle">新增角色</h2><button class="modal-close" onclick="closeRoleFormModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>角色名</label><input type="text" id="rfName" placeholder="输入角色名"></div>
+      <div class="form-group"><label>描述</label><input type="text" id="rfDesc" placeholder="输入描述"></div>
+      <div class="form-group"><label>权限</label><div class="perm-checkbox-grid" id="rfPermsGrid"></div></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeRoleFormModal()">取消</button><button class="btn btn-primary" onclick="saveRoleForm()">保存</button></div>
+  </div>
+</div>
+
 <div class="toast-container" id="toastContainer"></div>
 
 <div class="modal-overlay" id="settingsModal">
@@ -651,6 +764,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
       <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:6px"><span style="font-size:16px">🔴</span> Redis 缓存 <span style="font-size:10px;font-weight:400;color:var(--text-dim)">(配置来自 Nacos)</span></div>
       <div class="form-group"><label>缓存过期时间（秒）</label><input type="number" id="cfgCacheTtl" placeholder="3600" min="60"></div>
+      <div class="form-group"><label>会话超时时间（分钟）</label><input type="number" id="cfgSessionTimeout" placeholder="30" min="1"></div>
       <div id="redisStatus" style="font-size:11px;color:var(--text-dim);padding:6px 10px;background:var(--glass);border-radius:6px"></div>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closeSettingsModal()">取消</button><button class="btn btn-primary" onclick="saveSettings()">保存并重连</button></div>
@@ -658,6 +772,13 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </div>
 
 <script>
+let currentUser=null;
+let currentPermissions=[];
+let allPermissionsList=[];
+let allRolesList=[];
+let allUsersList=[];
+let editingUserId=null;
+let editingRoleId=null;
 const META_COLS=new Set(['_source','_source_db']);
 const CHART_SVGS={
   line:'<svg viewBox="0 0 24 24"><path d="M3 20l4-8 4 4 4-10 6 6"/></svg>',
@@ -869,6 +990,7 @@ async function openSettingsModal(){
       document.getElementById('cfgNacosDataId').value=c.nacos.data_id||'';
       document.getElementById('cfgNacosRedisDataId').value=c.nacos.redis_data_id||'';
       document.getElementById('cfgCacheTtl').value=c.cache_ttl||3600;
+      document.getElementById('cfgSessionTimeout').value=c.session_timeout||30;
     }
   }catch(e){}
   try{
@@ -897,6 +1019,7 @@ async function saveSettings(){
       redis_data_id:document.getElementById('cfgNacosRedisDataId').value||'data_dashboard_redis',
     },
     cache_ttl:parseInt(document.getElementById('cfgCacheTtl').value)||3600,
+    session_timeout:parseInt(document.getElementById('cfgSessionTimeout').value)||30,
   };
   try{
     const r=await api('/api/app-config',{method:'POST',body});
@@ -990,8 +1113,8 @@ async function executeDrillDown(targetDim,startDate,endDate,forceRefresh){
   const sql=currentScriptSql();
   const connName=document.getElementById('connSelect').value;
   const mergeNames=getMergeNames();
-  if(!sql)return toast('请选择脚本或脚本无 SQL','error');
-  if(!connName&&!mergeNames.length)return toast('请选择数据源','error');
+  if(!sql)return toast(hasPermission('script_manage')?'请选择脚本或脚本无 SQL':'请选择查询选项','error');
+  if(!connName&&!mergeNames.length)return toast(hasPermission('datasource_manage')?'请选择数据源':'请选择通道','error');
   startGridTransition();
   const btn=document.getElementById('btnExecute');
   btn.classList.add('loading');btn.innerHTML='查询中<span class="loading-dot">.</span><span class="loading-dot">.</span><span class="loading-dot">.</span>';
@@ -1211,7 +1334,7 @@ document.addEventListener('click',e=>{
 
 initDatePicker();
 
-async function api(url,opts={}){try{const res=await fetch(url,{headers:{'Content-Type':'application/json'},...opts,body:opts.body?JSON.stringify(opts.body):undefined});const data=await res.json();if(!res.ok){const err=new Error(data.error||'请求失败');err.traceback=data.traceback||'';throw err}return data}catch(e){throw e}}
+async function api(url,opts={}){try{const res=await fetch(url,{headers:{'Content-Type':'application/json'},...opts,body:opts.body?JSON.stringify(opts.body):undefined});if(res.status===401){showLoginOverlay();throw new Error('未登录或登录已过期')}if(res.status===403){toast('权限不足','error');throw new Error('权限不足')}const data=await res.json();if(!res.ok){const err=new Error(data.error||'请求失败');err.traceback=data.traceback||'';throw err}return data}catch(e){throw e}}
 function toast(msg,type='info'){const el=document.createElement('div');el.className=`toast ${type}`;el.textContent=msg;document.getElementById('toastContainer').appendChild(el);setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .3s';setTimeout(()=>el.remove(),300)},3000)}
 
 function onSqlChange(){clearTimeout(paramDebounce);paramDebounce=setTimeout(detectParams,400)}
@@ -1221,7 +1344,7 @@ function getMergeNames(){return Array.from(document.querySelectorAll('#mergeGrid
 function currentScriptSql(){const name=document.getElementById('scriptSelect').value;if(!name)return '';const s=scripts.find(s=>s.name===name);return s?s.sql:''}
 
 async function loadConnections(){connections=await api('/api/connections');renderConnSelect();renderMergeGrid()}
-function renderConnSelect(){const sel=document.getElementById('connSelect'),cur=sel.value;sel.innerHTML='<option value="">选择连接...</option>'+connections.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');if(cur)sel.value=cur}
+function renderConnSelect(){const sel=document.getElementById('connSelect'),cur=sel.value;const isDs=hasPermission('datasource_manage');const ph=isDs?'选择连接...':'选择通道...';sel.innerHTML=`<option value="">${ph}</option>`+connections.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');if(cur)sel.value=cur;const connLabel=sel.parentElement.querySelector('label');if(connLabel)connLabel.textContent=isDs?'连接':'通道';const mergeLabel=document.getElementById('mergeLabel');if(mergeLabel)mergeLabel.textContent=isDs?'合并数据源':'合并通道'}
 function renderMergeGrid(){
   document.getElementById('mergeGrid').innerHTML=connections.map(c=>`<label class="merge-chip"><input type="checkbox" value="${c.name}" onchange="this.parentElement.classList.toggle('checked');onMergeChanged()">${c.name}</label>`).join('');
   onMergeChanged();
@@ -1323,7 +1446,7 @@ function applySshTemplate(){
   document.getElementById('sshKeyPass').value=conn.ssh_key_password||'';
 }
 
-async function loadScripts(){scripts=await api('/api/scripts');const sel=document.getElementById('scriptSelect'),cur=sel.value;sel.innerHTML='<option value="">— 选择脚本 —</option>'+scripts.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');if(cur&&scripts.find(s=>s.name===cur))sel.value=cur;renderScriptConnSelect()}
+async function loadScripts(){scripts=await api('/api/scripts');const sel=document.getElementById('scriptSelect'),cur=sel.value;const isSc=hasPermission('script_manage');const ph=isSc?'— 选择脚本 —':'— 选择查询 —';sel.innerHTML=`<option value="">${ph}</option>`+scripts.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');if(cur&&scripts.find(s=>s.name===cur))sel.value=cur;renderScriptConnSelect()}
 function renderScriptConnSelect(){const sel=document.getElementById('scriptConnInput');sel.innerHTML='<option value="">无</option>'+connections.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}
 async function onScriptSelected(){const name=document.getElementById('scriptSelect').value;if(!name){document.getElementById('paramsSection').style.display='none';return}const script=scripts.find(s=>s.name===name);if(!script)return;currentScriptName=name;lastQueryResult=null;if(script.conn_name){const sel=document.getElementById('connSelect');if([...sel.options].some(o=>o.value===script.conn_name))sel.value=script.conn_name}detectParams();await loadScriptColumns();buildPreQueryCfgCards();buildMergeKeySelect();buildHideFieldsGrid()}
 
@@ -1339,7 +1462,7 @@ async function loadScriptColumns(){
 function buildPreQueryCfgCards(){
   if(lastQueryResult)return;
   const container=document.getElementById('chartCfgCards');
-  const sql=currentScriptSql();if(!sql){container.innerHTML='<div class="no-data-hint">选择脚本后可预配置</div>';document.getElementById('btnApplyLayout').disabled=true;return}
+  const sql=currentScriptSql();if(!sql){container.innerHTML=`<div class="no-data-hint">${hasPermission('script_manage')?'选择脚本后可预配置':'选择查询后可预配置'}</div>`;document.getElementById('btnApplyLayout').disabled=true;return}
   const cols=scriptColumnsCache[currentScriptName]||[];
   container.innerHTML='';
   const dateKeywords=['日期','日期','date','time','datetime','day','month','year','时间'];
@@ -1359,8 +1482,8 @@ function buildPreQueryCfgCards(){
 
 function openScriptManager(){editingScriptName=null;renderScriptListInModal();clearScriptEditor();document.getElementById('scriptModal').classList.add('show');renderScriptConnSelect()}
 function closeScriptManager(){document.getElementById('scriptModal').classList.remove('show')}
-function renderScriptListInModal(){const el=document.getElementById('scriptListInModal');if(!scripts.length){el.innerHTML='<div class="no-data-hint">暂无脚本，点击新建</div>';return}el.innerHTML=scripts.map(s=>{const conn=s.conn_name?`<span class="si-conn">${s.conn_name}</span>`:'';return`<div class="script-item" onclick="selectScriptInModal('${s.name}')"><span class="si-name">${s.name}</span>${conn}<div class="si-actions"><button onclick="event.stopPropagation();selectScriptInModal('${s.name}')" title="编辑">✎</button><button class="del" onclick="event.stopPropagation();deleteScriptInModal('${s.name}')" title="删除">✕</button></div></div>`}).join('')}
-function selectScriptInModal(name){const s=scripts.find(s=>s.name===name);if(!s)return;editingScriptName=name;document.getElementById('scriptNameInput').value=s.name;document.getElementById('scriptSqlInput').value=s.sql;document.getElementById('scriptConnInput').value=s.conn_name||'';document.getElementById('btnDeleteScript').style.display=''}
+function renderScriptListInModal(){const el=document.getElementById('scriptListInModal');const canEdit=hasPermission('script_manage');if(!scripts.length){el.innerHTML='<div class="no-data-hint">暂无脚本，点击新建</div>';return}el.innerHTML=scripts.map(s=>{const conn=s.conn_name?`<span class="si-conn">${s.conn_name}</span>`:'';const actions=canEdit?`<div class="si-actions"><button onclick="event.stopPropagation();selectScriptInModal('${s.name}')" title="编辑">✎</button><button class="del" onclick="event.stopPropagation();deleteScriptInModal('${s.name}')" title="删除">✕</button></div>`:'';return`<div class="script-item" onclick="selectScriptInModal('${s.name}')"><span class="si-name">${s.name}</span>${conn}${actions}</div>`}).join('')}
+function selectScriptInModal(name){const s=scripts.find(s=>s.name===name);if(!s)return;editingScriptName=name;document.getElementById('scriptNameInput').value=s.name;document.getElementById('scriptSqlInput').value=s.sql;document.getElementById('scriptConnInput').value=s.conn_name||'';document.getElementById('btnDeleteScript').style.display=hasPermission('script_manage')?'':'none'}
 function clearScriptEditor(){editingScriptName=null;document.getElementById('scriptNameInput').value='';document.getElementById('scriptSqlInput').value='';document.getElementById('scriptConnInput').value='';document.getElementById('btnDeleteScript').style.display='none'}
 function newScriptInModal(){clearScriptEditor();document.getElementById('scriptNameInput').focus()}
 async function saveScriptInModal(){const name=document.getElementById('scriptNameInput').value.trim();const sql=document.getElementById('scriptSqlInput').value;const conn_name=document.getElementById('scriptConnInput').value;if(!name)return toast('请输入脚本名称','error');if(!sql.trim())return toast('请输入 SQL','error');const data={name,sql,chart_type:'line',conn_name,merge_conn_names:[]};try{const existing=scripts.find(s=>s.name===name);if(existing&&editingScriptName!==name){return toast('脚本名称已存在','error')}if(editingScriptName){await api(`/api/scripts/${encodeURIComponent(editingScriptName)}`,{method:'PUT',body:data});toast('脚本已更新','success')}else{await api('/api/scripts',{method:'POST',body:data});toast('脚本已创建','success')}editingScriptName=name;await loadScripts();renderScriptListInModal();document.getElementById('scriptSelect').value=name;currentScriptName=name;detectParams()}catch{}}
@@ -1466,8 +1589,8 @@ async function executeQuery(fromQuickQuery,fromDrill,forceRefresh){
   const sql=currentScriptSql();
   const connName=document.getElementById('connSelect').value;
   const mergeNames=getMergeNames();
-  if(!sql)return toast('请选择脚本或脚本无 SQL','error');
-  if(!connName&&!mergeNames.length)return toast('请选择数据源','error');
+  if(!sql)return toast(hasPermission('script_manage')?'请选择脚本或脚本无 SQL':'请选择查询选项','error');
+  if(!connName&&!mergeNames.length)return toast(hasPermission('datasource_manage')?'请选择数据源':'请选择通道','error');
   startGridTransition();
   const btn=document.getElementById('btnExecute');
   btn.classList.add('loading');btn.innerHTML='查询中<span class="loading-dot">.</span><span class="loading-dot">.</span><span class="loading-dot">.</span>';
@@ -1574,7 +1697,7 @@ function renderMultiChart(result,configs){
     toolbar.innerHTML=`<span class="chart-card-title">${cfg.title}</span>`;
     const sf=savedFilters[i]||{};
     if(isSeparateMode&&sourceNames.length){
-      toolbar.innerHTML+=`<select class="sel" style="width:auto;min-width:80px;padding:3px 22px 3px 6px;font-size:10px;margin-right:2px" onchange="switchSource(${i},this.value)" data-chart="${i}" data-role="source"><option value="">全部数据源</option>${sourceNames.map(s=>`<option value="${s}"${s===sf.source?' selected':''}>${s}</option>`).join('')}</select>`;
+      toolbar.innerHTML+=`<select class="sel" style="width:auto;min-width:80px;padding:3px 22px 3px 6px;font-size:10px;margin-right:2px" onchange="switchSource(${i},this.value)" data-chart="${i}" data-role="source"><option value="">${hasPermission('datasource_manage')?'全部数据源':'全部通道'}</option>${sourceNames.map(s=>`<option value="${s}"${s===sf.source?' selected':''}>${s}</option>`).join('')}</select>`;
       if(channelCol&&channelValues.length){
         const baseResult=sf.source?filterResultBySource(result,sf.source):result;
         const chIdx=baseResult.columns.indexOf(channelCol);
@@ -1586,7 +1709,8 @@ function renderMultiChart(result,configs){
       toolbar.innerHTML+=`<button class="chart-type-btn${t===cfg.chartType?' active':''}" onclick="switchType(${i},'${t}',this)" title="${t}">${CHART_SVGS[t]}</button>`;
     });
     toolbar.innerHTML+=`<button class="chart-expand-btn" onclick="openFullscreen(${i})" title="放大">⛶</button>`;
-    toolbar.innerHTML+=`<button class="chart-save-btn" onclick="${cfg.chartType==='table'?'exportChartExcel':'saveChartImage'}(${i})" title="${cfg.chartType==='table'?'导出Excel':'保存图片'}">${cfg.chartType==='table'?'📊':'📷'}</button>`;
+    if(cfg.chartType==='table'&&hasPermission('export_data')){toolbar.innerHTML+=`<button class="chart-save-btn" onclick="exportChartExcel(${i})" title="导出Excel">📊</button>`}
+    else if(cfg.chartType!=='table'&&hasPermission('save_chart')){toolbar.innerHTML+=`<button class="chart-save-btn" onclick="saveChartImage(${i})" title="保存图片">📷</button>`}
     toolbar.innerHTML+=`<span class="chart-card-info" id="chartInfo_${i}"></span>`;
     const body=document.createElement('div');body.className='chart-card-body';body.id=`chartBody_${i}`;
     card.appendChild(toolbar);card.appendChild(body);grid.appendChild(card);
@@ -1687,8 +1811,9 @@ function switchType(chartIdx,type,btn){
   const configs=getChartConfigs();configs[chartIdx].chartType=type;
   const saveBtn=document.querySelector(`#chartCard_${chartIdx} .chart-save-btn`);
   if(saveBtn){
-    if(type==='table'){saveBtn.textContent='📊';saveBtn.title='导出Excel';saveBtn.onclick=()=>exportChartExcel(chartIdx)}
-    else{saveBtn.textContent='📷';saveBtn.title='保存图片';saveBtn.onclick=()=>saveChartImage(chartIdx)}
+    if(type==='table'&&hasPermission('export_data')){saveBtn.textContent='📊';saveBtn.title='导出Excel';saveBtn.onclick=()=>exportChartExcel(chartIdx)}
+    else if(type!=='table'&&hasPermission('save_chart')){saveBtn.textContent='📷';saveBtn.title='保存图片';saveBtn.onclick=()=>saveChartImage(chartIdx)}
+    else{saveBtn.style.display='none'}
   }
   stopChartAnim(chartIdx);
   const body=document.getElementById(`chartBody_${chartIdx}`);
@@ -1716,7 +1841,7 @@ function openFullscreen(idx){
   if(isSeparateMode&&sourceNames.length){
     const cardSourceEl=document.querySelector(`select[data-chart="${idx}"][data-role="source"]`);
     const curSource=cardSourceEl?cardSourceEl.value:'';
-    filtersDiv.innerHTML+=`<select class="sel" style="width:auto;min-width:80px;padding:3px 22px 3px 6px;font-size:10px;margin-right:2px" onchange="switchFsSource(${idx},this.value)" data-role="source"><option value="">全部数据源</option>${sourceNames.map(s=>`<option value="${s}"${s===curSource?' selected':''}>${s}</option>`).join('')}</select>`;
+    filtersDiv.innerHTML+=`<select class="sel" style="width:auto;min-width:80px;padding:3px 22px 3px 6px;font-size:10px;margin-right:2px" onchange="switchFsSource(${idx},this.value)" data-role="source"><option value="">${hasPermission('datasource_manage')?'全部数据源':'全部通道'}</option>${sourceNames.map(s=>`<option value="${s}"${s===curSource?' selected':''}>${s}</option>`).join('')}</select>`;
     const channelCol=detectChannelColumn(lastQueryResult);
     if(channelCol){
       const cardChannelEl=document.querySelector(`select[data-chart="${idx}"][data-role="channel"]`);
@@ -1805,10 +1930,12 @@ function fsRerender(chartIdx,sourceName,channelVal){
 
 function updateFsSaveBtn(chartIdx,chartType){
   const btn=document.getElementById('fsSaveBtn');if(!btn)return;
-  if(chartType==='table'){
-    btn.textContent='📊';btn.title='导出Excel';btn.onclick=()=>exportChartExcel(chartIdx);
+  if(chartType==='table'&&hasPermission('export_data')){
+    btn.textContent='📊';btn.title='导出Excel';btn.onclick=()=>exportChartExcel(chartIdx);btn.style.display='';
+  }else if(chartType!=='table'&&hasPermission('save_chart')){
+    btn.textContent='📷';btn.title='保存图片';btn.onclick=()=>saveChartImage(chartIdx);btn.style.display='';
   }else{
-    btn.textContent='📷';btn.title='保存图片';btn.onclick=()=>saveChartImage(chartIdx);
+    btn.style.display='none';
   }
 }
 
@@ -1879,6 +2006,7 @@ function fmtNum(v){
 }
 
 function saveChartImage(chartIdx){
+  if(!hasPermission('save_chart'))return toast('无保存图表权限','error');
   let inst=chartInstances[chartIdx];
   if(!inst&&fullscreenIdx===chartIdx)inst=fullscreenInst;
   if(!inst)return toast('当前无图表可保存','error');
@@ -1891,6 +2019,7 @@ function saveChartImage(chartIdx){
 }
 
 function exportChartExcel(chartIdx){
+  if(!hasPermission('export_data'))return toast('无导出数据权限','error');
   const result=lastQueryResult;if(!result)return toast('无数据可导出','error');
   const configs=getChartConfigs();const cfg=configs[chartIdx];if(!cfg)return;
   const{columns,rows}=result;
@@ -2220,10 +2349,12 @@ function hideErrorPanel(){document.getElementById('errorPanel').style.display='n
 async function loadQuickQueries(){try{quickQueries=await api('/api/quick-queries');renderQuickQueryList()}catch(e){quickQueries=[]}}
 function renderQuickQueryList(){
   const el=document.getElementById('quickQueryList');
+  const canEdit=hasPermission('quick_query_manage');
   if(!quickQueries.length){el.innerHTML='<div class="no-data-hint">查询后可保存为快捷查询</div>';return}
   el.innerHTML=quickQueries.map(q=>{
     const info=[q.scriptName||'',q.dimension||''].filter(Boolean).join(' · ');
-    return`<div class="qq-item" onclick="applyQuickQuery('${q.name.replace(/'/g,"\\'")}')"><span class="qq-name">${q.name}</span><span class="qq-info">${info}</span><div class="qq-actions"><button onclick="event.stopPropagation();applyQuickQuery('${q.name.replace(/'/g,"\\'")}',true)" title="刷新数据">🔄</button><button onclick="event.stopPropagation();editQuickQuery('${q.name.replace(/'/g,"\\'")}')" title="编辑">✎</button><button class="del" onclick="event.stopPropagation();deleteQuickQuery('${q.name.replace(/'/g,"\\'")}')" title="删除">✕</button></div></div>`;
+    const actions=canEdit?`<div class="qq-actions"><button onclick="event.stopPropagation();applyQuickQuery('${q.name.replace(/'/g,"\\'")}',true)" title="刷新数据">🔄</button><button onclick="event.stopPropagation();editQuickQuery('${q.name.replace(/'/g,"\\'")}')" title="编辑">✎</button><button class="del" onclick="event.stopPropagation();deleteQuickQuery('${q.name.replace(/'/g,"\\'")}')" title="删除">✕</button></div>`:`<div class="qq-actions"><button onclick="event.stopPropagation();applyQuickQuery('${q.name.replace(/'/g,"\\'")}',true)" title="刷新数据">🔄</button></div>`;
+    return`<div class="qq-item" onclick="applyQuickQuery('${q.name.replace(/'/g,"\\'")}')"><span class="qq-name">${q.name}</span><span class="qq-info">${info}</span>${actions}</div>`;
   }).join('');
 }
 
@@ -2335,7 +2466,40 @@ async function deleteQuickQuery(name){
   try{await api(`/api/quick-queries/${encodeURIComponent(name)}`,{method:'DELETE'});toast('已删除','success');await loadQuickQueries()}catch(e){toast('删除失败: '+e.message,'error')}
 }
 
-document.addEventListener('DOMContentLoaded',()=>{loadConnections();loadScripts();loadQuickQueries()});
+document.addEventListener('DOMContentLoaded',()=>{checkAuth()});
+let _sessionCheckTimer=null;
+function startSessionCheck(){stopSessionCheck();_sessionCheckTimer=setInterval(async()=>{if(!currentUser)return;try{const data=await api('/api/auth/me');if(!data.ok||!data.user){currentUser=null;currentPermissions=[];showLoginOverlay();toast('会话已过期，请重新登录','error');stopSessionCheck()}}catch(e){stopSessionCheck()}},60000)}
+function stopSessionCheck(){if(_sessionCheckTimer){clearInterval(_sessionCheckTimer);_sessionCheckTimer=null}}
+async function checkAuth(){try{const data=await api('/api/auth/me');if(data.ok&&data.user){currentUser=data.user;currentPermissions=data.permissions||[];hideLoginOverlay();updateUserInfo();applyPermissions();loadConnections();loadScripts();loadQuickQueries();startSessionCheck()}else{showLoginOverlay()}}catch(e){showLoginOverlay()}}
+function showLoginOverlay(){document.getElementById('loginOverlay').style.display='flex';document.getElementById('loginError').textContent=''}
+function hideLoginOverlay(){document.getElementById('loginOverlay').style.display='none'}
+async function doLogin(){const username=document.getElementById('loginUsername').value.trim();const password=document.getElementById('loginPassword').value;if(!username||!password){document.getElementById('loginError').textContent='请输入用户名和密码';return}const btn=document.getElementById('loginBtn');btn.disabled=true;btn.textContent='登录中...';try{const data=await api('/api/auth/login',{method:'POST',body:{username,password}});if(data.ok){currentUser=data.user;currentPermissions=data.permissions||[];hideLoginOverlay();updateUserInfo();applyPermissions();loadConnections();loadScripts();loadQuickQueries();startSessionCheck()}else{document.getElementById('loginError').textContent=data.error||'登录失败'}}catch(e){document.getElementById('loginError').textContent=e.message||'登录失败'}finally{btn.disabled=false;btn.textContent='登 录'}}
+async function doLogout(){try{await api('/api/auth/logout',{method:'POST'})}catch{}currentUser=null;currentPermissions=[];stopSessionCheck();showLoginOverlay();document.getElementById('loginUsername').value='';document.getElementById('loginPassword').value=''}
+function updateUserInfo(){if(!currentUser)return;const area=document.getElementById('userInfoArea');area.style.display='flex';const name=currentUser.displayName||currentUser.username||'';document.getElementById('userDisplayName').textContent=name;document.getElementById('userAvatar').textContent=name.charAt(0).toUpperCase()}
+function hasPermission(perm){if(!currentUser)return false;if(currentUser.isSuperAdmin)return true;return currentPermissions.includes(perm)}
+function applyPermissions(){const permMap={'script_manage':['.section-head .btn-icon[onclick*="openScriptManager"]','#btnNewScript','#btnDeleteScript'],'datasource_manage':['.section-head .btn-icon[onclick*="openDbModal"]','.section-head .btn-icon[onclick*="openDbListModal"]'],'chart_layout':['.section-head .btn-icon[onclick*="openLayoutSettings"]'],'system_settings':['#btnSystemSettings'],'quick_query_manage':['.section-head .btn-icon[onclick*="openSaveQuickQueryModal"]'],'user_manage':['#btnUserManage'],'export_data':['.chart-save-btn[title*="导出"]','#fsSaveBtn[title*="导出"]'],'save_chart':['.chart-save-btn[title*="保存图片"]','#fsSaveBtn[title*="保存图片"]']};Object.entries(permMap).forEach(([perm,selectors])=>{const allowed=hasPermission(perm);selectors.forEach(sel=>{document.querySelectorAll(sel).forEach(el=>{el.style.display=allowed?'':'none'})})});const hasQQ=hasPermission('quick_query_manage');const hasDs=hasPermission('datasource_manage');const hasSc=hasPermission('script_manage');const qqSection=document.getElementById('quickQuerySection');if(qqSection)qqSection.style.display=hasQQ?'':'none';const dsLabel=document.getElementById('datasourceLabel');if(dsLabel)dsLabel.textContent=hasDs?'数据源':'通道';const scLabel=document.getElementById('scriptLabel');if(scLabel)scLabel.textContent=hasSc?'脚本':'查询选项';const mainHint=document.getElementById('mainEmptyHint');if(mainHint)mainHint.textContent=hasSc?(hasDs?'选择脚本与数据源，点击执行查询':'选择脚本与通道，点击执行查询'):(hasDs?'选择查询选项与数据源，点击执行查询':'选择查询选项与通道，点击执行查询');const cfgHint=document.getElementById('chartCfgHint');if(cfgHint)cfgHint.textContent=hasSc?'选择脚本后可预配置，或查询后自动填充':'选择查询后可预配置，或查询后自动填充';renderConnSelect()}
+document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+document.getElementById('loginUsername').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginPassword').focus()});
+
+function switchUmTab(tab,el){document.querySelectorAll('.um-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.um-panel').forEach(p=>p.classList.remove('active'));el.classList.add('active');document.getElementById(tab==='users'?'umUsersPanel':'umRolesPanel').classList.add('active');if(tab==='users')renderUserFormRoleSelect()}
+async function openUserManageModal(){if(!hasPermission('user_manage'))return toast('权限不足','error');document.getElementById('userManageModal').classList.add('show');await loadUsersList();await loadRolesList();await loadPermissionsList();renderUserFormRoleSelect()}
+function closeUserManageModal(){document.getElementById('userManageModal').classList.remove('show')}
+async function loadUsersList(){try{const data=await api('/api/users');allUsersList=Array.isArray(data)?data:(data.users||[]);const tbody=document.getElementById('umUsersBody');if(!allUsersList.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text-dim)">暂无用户</td></tr>';return}tbody.innerHTML=allUsersList.map(u=>{const status=u.isActive!==false?'<span class="status-badge on">启用</span>':'<span class="status-badge off">禁用</span>';let roles='';if(u.isSuperAdmin){roles='<span style="color:var(--accent3);font-weight:600">超级管理员</span>'}else{const roleNames=(u.roles||[]).map(r=>r.name);roles=roleNames.length?roleNames.map(n=>`<span style="display:inline-block;padding:1px 6px;background:var(--glass);border-radius:3px;font-size:10px;margin:1px">${n}</span>`).join(''):'<span style="color:var(--text-dim)">—</span>'}return`<tr><td>${u.username}</td><td>${u.displayName||''}</td><td>${roles}</td><td>${status}</td><td><div class="um-actions"><button onclick="editUserForm(${u.id})">编辑</button><button class="del" onclick="deleteUser(${u.id})">删除</button></div></td></tr>`}).join('')}catch(e){toast('加载用户列表失败','error')}}
+async function loadRolesList(){try{const data=await api('/api/roles');allRolesList=Array.isArray(data)?data:(data.roles||[]);const tbody=document.getElementById('umRolesBody');if(!allRolesList.length){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--text-dim)">暂无角色</td></tr>';return}tbody.innerHTML=allRolesList.map(r=>{const perms=(r.permissions||[]).map(p=>`<span style="display:inline-block;padding:1px 5px;background:var(--glass);border-radius:3px;font-size:9px;margin:1px">${p.name||p}</span>`).join('');return`<tr><td>${r.name}</td><td>${r.description||''}</td><td>${perms||'—'}</td><td><div class="um-actions"><button onclick="editRoleForm(${r.id})">编辑</button><button class="del" onclick="deleteRole(${r.id})">删除</button></div></td></tr>`}).join('')}catch(e){toast('加载角色列表失败','error')}}
+async function loadPermissionsList(){try{const data=await api('/api/permissions');allPermissionsList=Array.isArray(data)?data:(data.permissions||[])}catch{}}
+function renderUserFormRoleSelect(){const sel=document.getElementById('ufRole');sel.innerHTML=allRolesList.map(r=>`<option value="${r.id}">${r.name}</option>`).join('')}
+function openUserFormModal(){editingUserId=null;document.getElementById('userFormTitle').textContent='新增用户';document.getElementById('ufUsername').value='';document.getElementById('ufPassword').value='';document.getElementById('ufDisplayName').value='';document.getElementById('ufIsSuperAdmin').checked=false;document.getElementById('ufRole').value='';document.getElementById('ufEnabled').checked=true;document.getElementById('ufPasswordGroup').style.display='';document.getElementById('userFormModal').classList.add('show')}
+function closeUserFormModal(){document.getElementById('userFormModal').classList.remove('show')}
+function editUserForm(id){const u=allUsersList.find(u=>u.id===id);if(!u){toast('用户信息未找到','error');return}editingUserId=id;document.getElementById('userFormTitle').textContent='编辑用户';document.getElementById('ufUsername').value=u.username||'';document.getElementById('ufPassword').value='';document.getElementById('ufDisplayName').value=u.displayName||'';document.getElementById('ufIsSuperAdmin').checked=!!u.isSuperAdmin;renderUserFormRoleSelect();const userRoleIds=(u.roles||[]).map(r=>r.id);const sel=document.getElementById('ufRole');Array.from(sel.options).forEach(opt=>{opt.selected=userRoleIds.includes(parseInt(opt.value))});document.getElementById('ufEnabled').checked=u.isActive!==false;document.getElementById('ufPasswordGroup').style.display='';document.getElementById('userFormModal').classList.add('show')}
+async function saveUserForm(){const username=document.getElementById('ufUsername').value.trim();const password=document.getElementById('ufPassword').value;const displayName=document.getElementById('ufDisplayName').value.trim();const isSuperAdmin=document.getElementById('ufIsSuperAdmin').checked;const roleIds=Array.from(document.getElementById('ufRole').selectedOptions).map(opt=>parseInt(opt.value));const isActive=document.getElementById('ufEnabled').checked;if(!username){return toast('请输入用户名','error')}if(!editingUserId&&!password){return toast('请输入密码','error')}const body={username,displayName,isSuperAdmin,isActive,roleIds};if(password)body.password=password;try{if(editingUserId){await api(`/api/users/${editingUserId}`,{method:'PUT',body});toast('用户已更新','success')}else{await api('/api/users',{method:'POST',body});toast('用户已创建','success')}closeUserFormModal();await loadUsersList()}catch(e){toast('保存失败: '+e.message,'error')}}
+async function deleteUser(id){if(!confirm('确定删除该用户？'))return;try{await api(`/api/users/${id}`,{method:'DELETE'});toast('用户已删除','success');await loadUsersList()}catch(e){toast('删除失败: '+e.message,'error')}}
+
+function openRoleFormModal(){editingRoleId=null;document.getElementById('roleFormTitle').textContent='新增角色';document.getElementById('rfName').value='';document.getElementById('rfDesc').value='';renderPermCheckboxes([]);document.getElementById('roleFormModal').classList.add('show')}
+function closeRoleFormModal(){document.getElementById('roleFormModal').classList.remove('show')}
+function renderPermCheckboxes(selectedPermIds){const grid=document.getElementById('rfPermsGrid');grid.innerHTML=allPermissionsList.map(p=>{const checked=selectedPermIds.includes(p.id);return`<label class="perm-checkbox-item${checked?' checked':''}"><input type="checkbox" value="${p.id}"${checked?' checked':''}><span>${p.name}</span></label>`}).join('');grid.querySelectorAll('.perm-checkbox-item').forEach(item=>{item.addEventListener('click',()=>{const cb=item.querySelector('input');cb.checked=!cb.checked;item.classList.toggle('checked',cb.checked)})})}
+function editRoleForm(id){const r=allRolesList.find(r=>r.id===id);if(!r){toast('角色信息未找到','error');return}editingRoleId=id;document.getElementById('roleFormTitle').textContent='编辑角色';document.getElementById('rfName').value=r.name||'';document.getElementById('rfDesc').value=r.description||'';const permIds=(r.permissions||[]).map(p=>p.id);renderPermCheckboxes(permIds);document.getElementById('roleFormModal').classList.add('show')}
+async function saveRoleForm(){const name=document.getElementById('rfName').value.trim();const description=document.getElementById('rfDesc').value.trim();const permissionIds=Array.from(document.querySelectorAll('#rfPermsGrid input:checked')).map(cb=>parseInt(cb.value));if(!name){return toast('请输入角色名','error')}const body={name,description,permissionIds};try{if(editingRoleId){await api(`/api/roles/${editingRoleId}`,{method:'PUT',body});toast('角色已更新','success')}else{await api('/api/roles',{method:'POST',body});toast('角色已创建','success')}closeRoleFormModal();await loadRolesList()}catch(e){toast('保存失败: '+e.message,'error')}}
+async function deleteRole(id){if(!confirm('确定删除该角色？'))return;try{await api(`/api/roles/${id}`,{method:'DELETE'});toast('角色已删除','success');await loadRolesList()}catch(e){toast('删除失败: '+e.message,'error')}}
 </script>
 </body>
 </html>

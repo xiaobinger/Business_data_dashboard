@@ -42,6 +42,7 @@ DEFAULT_APP_CONFIG = {
         "meta_data_id": "data_dashboard_meta",
     },
     "cache_ttl": 3600,
+    "session_timeout": 30,
 }
 
 
@@ -52,6 +53,8 @@ def load_app_config():
         merged["nacos"] = {**DEFAULT_APP_CONFIG["nacos"], **data["nacos"]}
     if "cache_ttl" in data:
         merged["cache_ttl"] = data["cache_ttl"]
+    if "session_timeout" in data:
+        merged["session_timeout"] = data["session_timeout"]
     return merged
 
 

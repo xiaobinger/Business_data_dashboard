@@ -1,6 +1,6 @@
 # 📊 Business Data Dashboard
 
-业务数据看板桌面工具，基于 Flask + ECharts 构建，支持多数据源查询、图表钻取、主题切换，集成 Nacos 配置中心、Redis 查询缓存与 MySQL 元数据管理。
+业务数据看板桌面工具，基于 Flask + ECharts 构建，支持多数据源查询、图表钻取、主题切换，集成 Nacos 配置中心、Redis 查询缓存与 MySQL 元数据管理，内置 RBAC 用户权限体系与会话管理。
 
 ---
 
@@ -14,7 +14,9 @@
 - **查询缓存**：基于 Redis 的查询结果缓存，相同查询条件直接命中缓存，支持强制刷新
 - **快捷查询**：保存常用查询条件，一键快速执行，数据持久化到 MySQL
 - **脚本管理**：SQL 脚本模板管理，支持参数化查询，数据持久化到 MySQL
-- **系统设置**：前端可视化配置 Nacos 连接信息、缓存过期时间，实时检测连接状态
+- **RBAC 权限体系**：用户-角色-权限三级模型，超级管理员/子管理员/普通用户分层管理
+- **会话管理**：可配置的会话超时时间，空闲超时自动登出，前后端双重检测
+- **系统设置**：前端可视化配置 Nacos 连接信息、缓存过期时间、会话超时，实时检测连接状态
 
 ---
 
@@ -30,9 +32,10 @@ data_dashboard/
 │   └── routes.py            # Flask 路由，所有后端 API 端点
 ├── core/
 │   ├── __init__.py
+│   ├── auth.py              # 认证模块，登录/登出/权限装饰器/会话超时检测
 │   ├── cache.py             # Redis 查询缓存（动态导入，降级为内存缓存）
 │   ├── nacos_config.py      # Nacos 配置中心客户端（适配 v3.x async API）
-│   ├── meta_store.py        # 元数据库管理（快捷查询、脚本的 MySQL 持久化）
+│   ├── meta_store.py        # 元数据库管理（快捷查询、脚本、RBAC 的 MySQL 持久化）
 │   ├── db_manager.py        # 数据库连接管理、SQL 执行
 │   ├── query_engine.py      # 查询引擎，维度参数构建、合并查询
 │   ├── data_merger.py       # 多数据源数据合并
@@ -54,7 +57,7 @@ data_dashboard/
 ### 环境要求
 
 - Python 3.10+
-- MySQL 服务（元数据存储：快捷查询、脚本管理）
+- MySQL 服务（元数据存储：快捷查询、脚本管理、RBAC 权限数据）
 - Redis 服务（查询缓存）
 - Nacos 服务（配置中心）
 
@@ -74,12 +77,70 @@ python main.py
 
 启动后自动打开浏览器访问 `http://127.0.0.1:9527`。
 
+### 默认账号
+
+系统首次启动时自动创建超级管理员账号：
+
+| 用户名 | 密码 | 角色 |
+|--------|------|------|
+| admin | admin123 | 超级管理员 |
+
+> ⚠️ 请在生产环境中及时修改默认密码。
+
 ### 首次配置
 
-1. 启动后点击工具栏 **⚙ 系统设置** 按钮
-2. 填写 Nacos 连接信息（Server Addresses、Username、Password 等）
-3. 点击 **保存并重连**，确认 Nacos、Redis、元数据库均显示已连接
-4. 数据库连接、Redis 连接、元数据库连接配置均在 Nacos 上管理
+1. 使用 admin/admin123 登录系统
+2. 点击工具栏 **⚙ 系统设置** 按钮
+3. 填写 Nacos 连接信息（Server Addresses、Username、Password 等）
+4. 点击 **保存并重连**，确认 Nacos、Redis、元数据库均显示已连接
+5. 数据库连接、Redis 连接、元数据库连接配置均在 Nacos 上管理
+
+---
+
+## 🔐 用户权限体系（RBAC）
+
+系统采用 **用户 → 角色 → 权限** 三级 RBAC 模型，所有数据存储在 MySQL 元数据库中。
+
+### 用户类型
+
+| 类型 | 说明 |
+|------|------|
+| 超级管理员 | 拥有所有权限，可管理子管理员和普通用户 |
+| 子管理员 | 可管理用户、角色和权限分配 |
+| 普通用户 | 根据角色授权获得相应权限 |
+
+### 内置权限
+
+| 权限代码 | 名称 | 说明 |
+|----------|------|------|
+| `script_manage` | 脚本管理 | 新增、编辑、删除 SQL 脚本 |
+| `datasource_manage` | 数据源管理 | 新增、编辑、删除数据库连接 |
+| `chart_layout` | 图表布局设置 | 修改图表布局和配置 |
+| `system_settings` | 系统设置 | 修改 Nacos、Redis、缓存等系统配置 |
+| `quick_query_manage` | 快捷查询管理 | 新增、编辑、删除快捷查询 |
+| `user_manage` | 用户管理 | 管理用户、角色和权限 |
+| `export_data` | 导出数据 | 导出查询结果为 Excel/CSV |
+| `save_chart` | 保存图表 | 保存图表为图片 |
+
+### 权限对前端 UI 的影响
+
+| 权限 | 无权限时的影响 |
+|------|---------------|
+| `quick_query_manage` | 整个快捷查询模块隐藏 |
+| `datasource_manage` | 隐藏新建/管理连接按钮，"数据源"显示为"通道"，"连接"显示为"通道" |
+| `script_manage` | 隐藏脚本管理按钮，"脚本"显示为"查询选项" |
+| `export_data` | 隐藏导出 Excel 按钮，调用导出函数时提示无权限 |
+| `save_chart` | 隐藏保存图片按钮，调用保存函数时提示无权限 |
+| `chart_layout` | 隐藏布局设置按钮 |
+| `system_settings` | 隐藏系统设置按钮 |
+| `user_manage` | 隐藏用户管理按钮 |
+
+### 会话管理
+
+- 会话超时时间可在 **系统设置** 中配置，默认 30 分钟
+- 后端通过 `before_request` 钩子检测每次 API 请求的空闲时间，超时自动清空登录状态
+- 前端每 60 秒发送心跳检测会话状态，超时自动跳转登录页并提示
+- 登录/登出接口不受会话超时检测影响
 
 ---
 
@@ -98,6 +159,7 @@ python main.py
 │  redis_data_id     │
 │  meta_data_id      │
 │ cache_ttl          │
+│ session_timeout    │
 └───────────────────┘
 ```
 
@@ -111,7 +173,8 @@ python main.py
 | 数据库连接 | Nacos `data_dashboard_connections` | 只从 Nacos 读写 |
 | Redis 连接 | Nacos `data_dashboard_redis` | 只从 Nacos 读写 |
 | 元数据库连接 | Nacos `data_dashboard_meta` | 只从 Nacos 读写 |
-| 缓存过期时间 | `data/app_config.json` | 本地存储 |
+| 缓存过期时间 | `data/app_config.json` | 本地存储，默认 3600 秒 |
+| 会话超时时间 | `data/app_config.json` | 本地存储，默认 30 分钟 |
 
 ### 环境变量覆盖
 
@@ -179,15 +242,63 @@ python main.py
 }
 ```
 
-> 元数据库用于持久化存储快捷查询和脚本配置。系统启动时会自动建表，如果表为空则插入内置的种子数据。
+> 元数据库用于持久化存储快捷查询、脚本配置和 RBAC 权限数据。系统启动时会自动建表，如果表为空则插入内置的种子数据。
 
 ---
 
 ## 🗄 元数据库
 
-快捷查询和脚本通过 MySQL 元数据库管理，使用 SQLAlchemy ORM 映射。
+快捷查询、脚本和 RBAC 权限数据通过 MySQL 元数据库管理，使用 SQLAlchemy ORM 映射。
 
 ### 表结构
+
+**users** — 用户表
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | INT | 自增主键 |
+| username | VARCHAR(255) | 用户名（唯一） |
+| password_hash | VARCHAR(255) | 密码哈希（werkzeug） |
+| display_name | VARCHAR(255) | 显示名 |
+| is_super_admin | BOOLEAN | 是否超级管理员 |
+| is_active | BOOLEAN | 是否启用 |
+| created_at | DATETIME | 创建时间 |
+| updated_at | DATETIME | 更新时间 |
+
+**roles** — 角色表
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | INT | 自增主键 |
+| name | VARCHAR(255) | 角色名（唯一） |
+| description | VARCHAR(255) | 角色描述 |
+| created_at | DATETIME | 创建时间 |
+| updated_at | DATETIME | 更新时间 |
+
+**permissions** — 权限表
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | INT | 自增主键 |
+| code | VARCHAR(100) | 权限代码（唯一） |
+| name | VARCHAR(255) | 权限名称 |
+| description | VARCHAR(255) | 权限描述 |
+
+**user_roles** — 用户-角色关联表
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | INT | 自增主键 |
+| user_id | INT | 用户 ID（外键） |
+| role_id | INT | 角色 ID（外键） |
+
+**role_permissions** — 角色-权限关联表
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | INT | 自增主键 |
+| role_id | INT | 角色 ID（外键） |
+| permission_id | INT | 权限 ID（外键） |
 
 **quick_queries** — 快捷查询表
 
@@ -230,37 +341,85 @@ python main.py
 
 系统首次启动时，如果表为空会自动插入以下种子数据：
 
+- **超级管理员**：admin / admin123
+- **内置权限**：脚本管理、数据源管理、图表布局设置、系统设置、快捷查询管理、用户管理、导出数据、保存图表
 - **快捷查询**：「商户进件数年度汇总统计」「商户交易年度统计」
 - **脚本**：「商户进件情况」「商户交易统计」
+
+> 权限表采用增量补全策略：即使数据库已有旧权限数据，新增的权限也会自动补入，无需手动操作。
 
 ---
 
 ## 🔌 API 接口
 
+### 认证接口
+
 | 端点 | 方法 | 说明 |
 |------|------|------|
-| `/api/connections` | GET | 获取所有数据库连接 |
-| `/api/connections` | POST | 新增数据库连接 |
-| `/api/connections/<name>` | PUT | 更新连接配置 |
-| `/api/connections/<name>` | DELETE | 删除连接 |
-| `/api/connections/<name>/test` | POST | 测试连接 |
-| `/api/connections/<name>/tables` | GET | 获取表列表 |
-| `/api/connections/<name>/tables/<table>/columns` | GET | 获取字段列表 |
-| `/api/scripts` | GET | 获取脚本列表 |
-| `/api/scripts` | POST | 新增脚本 |
-| `/api/scripts/<name>` | PUT | 更新脚本 |
-| `/api/scripts/<name>` | DELETE | 删除脚本 |
+| `/api/auth/login` | POST | 用户登录 |
+| `/api/auth/logout` | POST | 用户登出 |
+| `/api/auth/me` | GET | 获取当前登录用户信息 |
+
+### 数据源接口
+
+| 端点 | 方法 | 权限 | 说明 |
+|------|------|------|------|
+| `/api/connections` | GET | — | 获取所有数据库连接 |
+| `/api/connections` | POST | `datasource_manage` | 新增数据库连接 |
+| `/api/connections/<name>` | PUT | `datasource_manage` | 更新连接配置 |
+| `/api/connections/<name>` | DELETE | `datasource_manage` | 删除连接 |
+| `/api/connections/<name>/test` | POST | — | 测试连接 |
+| `/api/connections/<name>/tables` | GET | — | 获取表列表 |
+| `/api/connections/<name>/tables/<table>/columns` | GET | — | 获取字段列表 |
+
+### 脚本接口
+
+| 端点 | 方法 | 权限 | 说明 |
+|------|------|------|------|
+| `/api/scripts` | GET | — | 获取脚本列表 |
+| `/api/scripts` | POST | `script_manage` | 新增脚本 |
+| `/api/scripts/<name>` | PUT | `script_manage` | 更新脚本 |
+| `/api/scripts/<name>` | DELETE | `script_manage` | 删除脚本 |
+
+### 查询接口
+
+| 端点 | 方法 | 说明 |
+|------|------|------|
 | `/api/parse-params` | POST | 解析 SQL 中的参数 |
 | `/api/parse-columns` | POST | 解析 SQL 中的列名 |
 | `/api/execute` | POST | 执行查询（支持缓存、钻取参数） |
-| `/api/quick-queries` | GET | 获取快捷查询列表 |
-| `/api/quick-queries` | POST | 新增快捷查询 |
-| `/api/quick-queries/<name>` | PUT | 更新快捷查询 |
-| `/api/quick-queries/<name>` | DELETE | 删除快捷查询 |
-| `/api/app-config` | GET | 获取系统配置 |
-| `/api/app-config` | POST | 更新系统配置并重连 |
-| `/api/app-config/test-redis` | POST | 测试 Redis 连接 |
-| `/api/app-config/test-nacos` | POST | 测试 Nacos 连接 |
+
+### 快捷查询接口
+
+| 端点 | 方法 | 权限 | 说明 |
+|------|------|------|------|
+| `/api/quick-queries` | GET | — | 获取快捷查询列表 |
+| `/api/quick-queries` | POST | `quick_query_manage` | 新增快捷查询 |
+| `/api/quick-queries/<name>` | PUT | `quick_query_manage` | 更新快捷查询 |
+| `/api/quick-queries/<name>` | DELETE | `quick_query_manage` | 删除快捷查询 |
+
+### 用户管理接口
+
+| 端点 | 方法 | 权限 | 说明 |
+|------|------|------|------|
+| `/api/users` | GET | `user_manage` | 获取用户列表 |
+| `/api/users` | POST | `user_manage` | 新增用户 |
+| `/api/users/<id>` | PUT | `user_manage` | 更新用户 |
+| `/api/users/<id>` | DELETE | `user_manage` | 删除用户 |
+| `/api/roles` | GET | `user_manage` | 获取角色列表 |
+| `/api/roles` | POST | `user_manage` | 新增角色 |
+| `/api/roles/<id>` | PUT | `user_manage` | 更新角色 |
+| `/api/roles/<id>` | DELETE | `user_manage` | 删除角色 |
+| `/api/permissions` | GET | 登录即可 | 获取权限列表 |
+
+### 系统配置接口
+
+| 端点 | 方法 | 权限 | 说明 |
+|------|------|------|------|
+| `/api/app-config` | GET | — | 获取系统配置 |
+| `/api/app-config` | POST | `system_settings` | 更新系统配置并重连 |
+| `/api/app-config/test-redis` | POST | — | 测试 Redis 连接 |
+| `/api/app-config/test-nacos` | POST | — | 测试 Nacos 连接 |
 
 ### 查询缓存机制
 
@@ -346,10 +505,11 @@ chmod +x deploy.sh
 | 层级 | 技术 |
 |------|------|
 | 后端 | Flask、SQLAlchemy、Pandas |
+| 认证 | Flask Session、werkzeug 密码哈希 |
 | 前端 | ECharts、原生 HTML/CSS/JS |
 | 缓存 | Redis（降级为内存缓存） |
 | 配置中心 | Nacos（nacos-sdk-python v3.x） |
-| 元数据存储 | MySQL（快捷查询、脚本持久化） |
+| 元数据存储 | MySQL（快捷查询、脚本、RBAC 持久化） |
 | 数据库 | MySQL、PostgreSQL、SQLite |
 | 部署 | Jenkins Pipeline、Shell 脚本 |
 
@@ -366,6 +526,7 @@ numpy>=1.26.0
 paramiko>=3.0.0
 redis>=5.0.0
 nacos-sdk-python>=1.0.0
+werkzeug>=3.0.0
 ```
 
 ---

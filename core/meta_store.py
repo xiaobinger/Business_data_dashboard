@@ -4,8 +4,8 @@ import threading
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 
-from sqlalchemy import create_engine, text, Column, Integer, String, Text, DateTime, JSON
-from sqlalchemy.orm import declarative_base, sessionmaker, Session
+from sqlalchemy import create_engine, text, Column, Integer, String, Text, DateTime, JSON, ForeignKey, Boolean
+from sqlalchemy.orm import declarative_base, sessionmaker, Session, relationship
 from sqlalchemy.engine import Engine
 
 from config import get_meta_db_config
@@ -112,6 +112,90 @@ class Script(Base):
         )
 
 
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(String(255), unique=True, nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    display_name = Column(String(255), default="")
+    is_super_admin = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    roles = relationship("Role", secondary="user_roles", back_populates="users")
+
+    def to_dict(self, include_roles=True) -> Dict[str, Any]:
+        d = {
+            "id": self.id,
+            "username": self.username,
+            "displayName": self.display_name,
+            "isSuperAdmin": self.is_super_admin,
+            "isActive": self.is_active,
+            "createdAt": self.created_at.isoformat() if self.created_at else None,
+        }
+        if include_roles:
+            d["roles"] = [r.to_dict(include_users=False) for r in self.roles]
+        return d
+
+
+class Role(Base):
+    __tablename__ = "roles"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(255), unique=True, nullable=False)
+    description = Column(String(255), default="")
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    users = relationship("User", secondary="user_roles", back_populates="roles")
+    permissions = relationship("Permission", secondary="role_permissions", back_populates="roles")
+
+    def to_dict(self, include_users=False, include_permissions=True) -> Dict[str, Any]:
+        d = {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "createdAt": self.created_at.isoformat() if self.created_at else None,
+        }
+        if include_permissions:
+            d["permissions"] = [p.to_dict() for p in self.permissions]
+        if include_users:
+            d["users"] = [u.to_dict(include_roles=False) for u in self.users]
+        return d
+
+
+class Permission(Base):
+    __tablename__ = "permissions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    code = Column(String(100), unique=True, nullable=False)
+    name = Column(String(255), nullable=False)
+    description = Column(String(255), default="")
+    roles = relationship("Role", secondary="role_permissions", back_populates="permissions")
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "code": self.code,
+            "name": self.name,
+            "description": self.description,
+        }
+
+
+class UserRole(Base):
+    __tablename__ = "user_roles"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False)
+
+
+class RolePermission(Base):
+    __tablename__ = "role_permissions"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False)
+    permission_id = Column(Integer, ForeignKey("permissions.id", ondelete="CASCADE"), nullable=False)
+
+
 _engine: Optional[Engine] = None
 _SessionLocal: Optional[sessionmaker] = None
 _lock = threading.Lock()
@@ -178,6 +262,9 @@ def _seed_if_empty():
             _seed_quick_queries(session)
         if session.query(Script).count() == 0:
             _seed_scripts(session)
+        _seed_missing_permissions(session)
+        if session.query(User).count() == 0:
+            _seed_admin_user(session)
         session.commit()
     except Exception as e:
         session.rollback()
@@ -264,6 +351,48 @@ def _seed_scripts(session: Session):
     for seed in seeds:
         session.add(Script.from_dict(seed))
     logger.info("已初始化 %d 条脚本种子数据", len(seeds))
+
+
+BUILTIN_PERMISSIONS = [
+    ("script_manage", "脚本管理", "新增、编辑、删除SQL脚本"),
+    ("datasource_manage", "数据源管理", "新增、编辑、删除数据库连接"),
+    ("chart_layout", "图表布局设置", "修改图表布局和配置"),
+    ("system_settings", "系统设置", "修改Nacos、Redis、缓存等系统配置"),
+    ("quick_query_manage", "快捷查询管理", "新增、编辑、删除快捷查询"),
+    ("user_manage", "用户管理", "管理用户、角色和权限"),
+    ("export_data", "导出数据", "导出查询结果为Excel/CSV"),
+    ("save_chart", "保存图表", "保存图表为图片"),
+]
+
+
+def _seed_permissions(session: Session):
+    for code, name, desc in BUILTIN_PERMISSIONS:
+        session.add(Permission(code=code, name=name, description=desc))
+    logger.info("已初始化 %d 条权限种子数据", len(BUILTIN_PERMISSIONS))
+
+
+def _seed_missing_permissions(session: Session):
+    existing = {p.code for p in session.query(Permission).all()}
+    added = 0
+    for code, name, desc in BUILTIN_PERMISSIONS:
+        if code not in existing:
+            session.add(Permission(code=code, name=name, description=desc))
+            added += 1
+    if added:
+        logger.info("已补全 %d 条缺失权限", added)
+
+
+def _seed_admin_user(session: Session):
+    from werkzeug.security import generate_password_hash
+    admin = User(
+        username="admin",
+        password_hash=generate_password_hash("admin123"),
+        display_name="超级管理员",
+        is_super_admin=True,
+        is_active=True,
+    )
+    session.add(admin)
+    logger.info("已初始化超级管理员账号: admin / admin123")
 
 
 def is_available() -> bool:
@@ -444,5 +573,251 @@ def delete_script(name: str) -> bool:
     except Exception:
         session.rollback()
         return False
+    finally:
+        session.close()
+
+
+# ── User CRUD ──
+
+def authenticate_user(username: str, password: str) -> Optional[Dict[str, Any]]:
+    if not init_meta_store():
+        return None
+    from werkzeug.security import check_password_hash
+    session = _get_session()
+    try:
+        user = session.query(User).filter_by(username=username, is_active=True).first()
+        if user and check_password_hash(user.password_hash, password):
+            return user.to_dict()
+        return None
+    finally:
+        session.close()
+
+
+def get_user_by_id(user_id: int) -> Optional[Dict[str, Any]]:
+    if not init_meta_store():
+        return None
+    session = _get_session()
+    try:
+        user = session.query(User).filter_by(id=user_id).first()
+        return user.to_dict() if user else None
+    finally:
+        session.close()
+
+
+def get_user_permissions(user_id: int) -> List[str]:
+    if not init_meta_store():
+        return []
+    session = _get_session()
+    try:
+        user = session.query(User).filter_by(id=user_id).first()
+        if not user:
+            return []
+        if user.is_super_admin:
+            return [p.code for p in session.query(Permission).all()]
+        codes = set()
+        for role in user.roles:
+            for perm in role.permissions:
+                codes.add(perm.code)
+        return sorted(codes)
+    finally:
+        session.close()
+
+
+def list_users() -> List[Dict[str, Any]]:
+    if not init_meta_store():
+        return []
+    session = _get_session()
+    try:
+        rows = session.query(User).order_by(User.id).all()
+        return [r.to_dict() for r in rows]
+    finally:
+        session.close()
+
+
+def add_user(data: Dict[str, Any]) -> Optional[int]:
+    if not init_meta_store():
+        return None
+    from werkzeug.security import generate_password_hash
+    session = _get_session()
+    try:
+        username = data.get("username", "").strip()
+        if not username:
+            return None
+        if session.query(User).filter_by(username=username).first():
+            return None
+        user = User(
+            username=username,
+            password_hash=generate_password_hash(data.get("password", "")),
+            display_name=data.get("displayName", ""),
+            is_super_admin=data.get("isSuperAdmin", False),
+            is_active=data.get("isActive", True),
+        )
+        session.add(user)
+        session.flush()
+        role_ids = data.get("roleIds", [])
+        if role_ids:
+            for rid in role_ids:
+                role = session.query(Role).filter_by(id=rid).first()
+                if role:
+                    user.roles.append(role)
+        session.commit()
+        return user.id
+    except Exception:
+        session.rollback()
+        return None
+    finally:
+        session.close()
+
+
+def update_user(user_id: int, data: Dict[str, Any]) -> bool:
+    if not init_meta_store():
+        return False
+    from werkzeug.security import generate_password_hash
+    session = _get_session()
+    try:
+        user = session.query(User).filter_by(id=user_id).first()
+        if not user:
+            return False
+        if "displayName" in data:
+            user.display_name = data["displayName"]
+        if "password" in data and data["password"]:
+            user.password_hash = generate_password_hash(data["password"])
+        if "isActive" in data:
+            user.is_active = data["isActive"]
+        if "isSuperAdmin" in data:
+            user.is_super_admin = data["isSuperAdmin"]
+        if "roleIds" in data:
+            user.roles = []
+            for rid in data["roleIds"]:
+                role = session.query(Role).filter_by(id=rid).first()
+                if role:
+                    user.roles.append(role)
+        user.updated_at = datetime.now()
+        session.commit()
+        return True
+    except Exception:
+        session.rollback()
+        return False
+    finally:
+        session.close()
+
+
+def delete_user(user_id: int) -> bool:
+    if not init_meta_store():
+        return False
+    session = _get_session()
+    try:
+        user = session.query(User).filter_by(id=user_id).first()
+        if not user:
+            return False
+        session.delete(user)
+        session.commit()
+        return True
+    except Exception:
+        session.rollback()
+        return False
+    finally:
+        session.close()
+
+
+# ── Role CRUD ──
+
+def list_roles() -> List[Dict[str, Any]]:
+    if not init_meta_store():
+        return []
+    session = _get_session()
+    try:
+        rows = session.query(Role).order_by(Role.id).all()
+        return [r.to_dict() for r in rows]
+    finally:
+        session.close()
+
+
+def add_role(data: Dict[str, Any]) -> Optional[int]:
+    if not init_meta_store():
+        return None
+    session = _get_session()
+    try:
+        name = data.get("name", "").strip()
+        if not name:
+            return None
+        if session.query(Role).filter_by(name=name).first():
+            return None
+        role = Role(name=name, description=data.get("description", ""))
+        session.add(role)
+        session.flush()
+        perm_ids = data.get("permissionIds", [])
+        if perm_ids:
+            for pid in perm_ids:
+                perm = session.query(Permission).filter_by(id=pid).first()
+                if perm:
+                    role.permissions.append(perm)
+        session.commit()
+        return role.id
+    except Exception:
+        session.rollback()
+        return None
+    finally:
+        session.close()
+
+
+def update_role(role_id: int, data: Dict[str, Any]) -> bool:
+    if not init_meta_store():
+        return False
+    session = _get_session()
+    try:
+        role = session.query(Role).filter_by(id=role_id).first()
+        if not role:
+            return False
+        if "name" in data:
+            new_name = data["name"].strip()
+            if new_name != role.name and session.query(Role).filter_by(name=new_name).first():
+                return False
+            role.name = new_name
+        if "description" in data:
+            role.description = data["description"]
+        if "permissionIds" in data:
+            role.permissions = []
+            for pid in data["permissionIds"]:
+                perm = session.query(Permission).filter_by(id=pid).first()
+                if perm:
+                    role.permissions.append(perm)
+        role.updated_at = datetime.now()
+        session.commit()
+        return True
+    except Exception:
+        session.rollback()
+        return False
+    finally:
+        session.close()
+
+
+def delete_role(role_id: int) -> bool:
+    if not init_meta_store():
+        return False
+    session = _get_session()
+    try:
+        role = session.query(Role).filter_by(id=role_id).first()
+        if not role:
+            return False
+        session.delete(role)
+        session.commit()
+        return True
+    except Exception:
+        session.rollback()
+        return False
+    finally:
+        session.close()
+
+
+# ── Permission ──
+
+def list_permissions() -> List[Dict[str, Any]]:
+    if not init_meta_store():
+        return []
+    session = _get_session()
+    try:
+        rows = session.query(Permission).order_by(Permission.id).all()
+        return [r.to_dict() for r in rows]
     finally:
         session.close()

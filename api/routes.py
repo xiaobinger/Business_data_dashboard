@@ -1,24 +1,44 @@
 import json
 import logging
 import traceback
-from flask import Flask, request, jsonify, send_from_directory
+from datetime import timedelta
+from flask import Flask, request, jsonify, send_from_directory, session
 from config import CHART_TYPES, DIMENSIONS, load_app_config, save_app_config, DEFAULT_APP_CONFIG
 from core.db_manager import DatabaseManager, DatabaseConnection
 from core.query_engine import QueryEngine, PARAM_PATTERN
 from core.data_merger import DataMerger
 from core.cache import build_cache_key, get_cache, set_cache
 from core import meta_store
+from core.auth import (
+    login_user, logout_user, require_login, require_permission,
+    get_current_user, get_current_user_id, get_current_permissions, is_super_admin, get_current_username,
+    touch_session, check_session_timeout,
+)
 
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__, static_folder="../static", static_url_path="")
 app.config["JSON_AS_ASCII"] = False
+app.secret_key = "data_dashboard_secret_key_2026"
+app.permanent_session_lifetime = timedelta(days=7)
 
 db_manager = DatabaseManager()
 query_engine = QueryEngine(db_manager)
 data_merger = DataMerger(query_engine)
 
 BUILTIN_PARAMS = {"dimension", "date_format", "start_date", "end_date", "year", "month", "day", "start_year", "end_year"}
+
+
+@app.before_request
+def _check_session_idle():
+    if request.path.startswith("/api/auth/"):
+        return
+    if request.path.startswith("/api/") and get_current_user_id():
+        cfg = load_app_config()
+        timeout = cfg.get("session_timeout", 30)
+        if not check_session_timeout(timeout):
+            return jsonify({"ok": False, "error": "会话已过期，请重新登录"}), 401
+        touch_session()
 
 
 @app.route("/")
@@ -38,6 +58,7 @@ def list_connections():
 
 
 @app.route("/api/connections", methods=["POST"])
+@require_permission("datasource_manage")
 def add_connection():
     data = request.json
     conn = DatabaseConnection.from_dict(data)
@@ -47,6 +68,7 @@ def add_connection():
 
 
 @app.route("/api/connections/<name>", methods=["PUT"])
+@require_permission("datasource_manage")
 def update_connection(name):
     data = request.json
     conn = DatabaseConnection.from_dict(data)
@@ -56,6 +78,7 @@ def update_connection(name):
 
 
 @app.route("/api/connections/<name>", methods=["DELETE"])
+@require_permission("datasource_manage")
 def delete_connection(name):
     if db_manager.remove_connection(name):
         return jsonify({"ok": True})
@@ -90,6 +113,7 @@ def list_scripts():
 
 
 @app.route("/api/scripts", methods=["POST"])
+@require_permission("script_manage")
 def add_script():
     data = request.json
     name = meta_store.add_script(data)
@@ -99,6 +123,7 @@ def add_script():
 
 
 @app.route("/api/scripts/<name>", methods=["PUT"])
+@require_permission("script_manage")
 def update_script(name):
     data = request.json
     if meta_store.update_script(name, data):
@@ -107,6 +132,7 @@ def update_script(name):
 
 
 @app.route("/api/scripts/<name>", methods=["DELETE"])
+@require_permission("script_manage")
 def delete_script(name):
     if meta_store.delete_script(name):
         return jsonify({"ok": True})
@@ -338,6 +364,7 @@ def list_quick_queries():
 
 
 @app.route("/api/quick-queries", methods=["POST"])
+@require_permission("quick_query_manage")
 def add_quick_query():
     data = request.json
     name = data.get("name", "").strip()
@@ -350,6 +377,7 @@ def add_quick_query():
 
 
 @app.route("/api/quick-queries/<name>", methods=["PUT"])
+@require_permission("quick_query_manage")
 def update_quick_query(name):
     data = request.json
     if meta_store.update_quick_query(name, data):
@@ -358,6 +386,7 @@ def update_quick_query(name):
 
 
 @app.route("/api/quick-queries/<name>", methods=["DELETE"])
+@require_permission("quick_query_manage")
 def delete_quick_query(name):
     if meta_store.delete_quick_query(name):
         return jsonify({"ok": True})
@@ -371,6 +400,7 @@ def get_app_config():
 
 
 @app.route("/api/app-config", methods=["POST"])
+@require_permission("system_settings")
 def update_app_config():
     data = request.json
     current = load_app_config()
@@ -378,6 +408,8 @@ def update_app_config():
         current["nacos"] = {**DEFAULT_APP_CONFIG["nacos"], **data["nacos"]}
     if "cache_ttl" in data:
         current["cache_ttl"] = int(data["cache_ttl"])
+    if "session_timeout" in data:
+        current["session_timeout"] = int(data["session_timeout"])
     save_app_config(current)
     nacos_ok = False
     try:
@@ -420,6 +452,118 @@ def test_redis_connection():
         return jsonify({"ok": False, "error": "redis 包未安装"})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)})
+
+
+# ── Auth API ──
+
+@app.route("/api/auth/login", methods=["POST"])
+def auth_login():
+    data = request.json
+    username = data.get("username", "").strip()
+    password = data.get("password", "")
+    if not username or not password:
+        return jsonify({"ok": False, "error": "请输入用户名和密码"}), 400
+    user = login_user(username, password)
+    if not user:
+        return jsonify({"ok": False, "error": "用户名或密码错误"}), 401
+    perms = get_current_permissions()
+    return jsonify({"ok": True, "user": user, "permissions": perms})
+
+
+@app.route("/api/auth/logout", methods=["POST"])
+def auth_logout():
+    logout_user()
+    return jsonify({"ok": True})
+
+
+@app.route("/api/auth/me", methods=["GET"])
+def auth_me():
+    user = get_current_user()
+    if not user:
+        return jsonify({"ok": False, "error": "未登录"}), 401
+    perms = get_current_permissions()
+    return jsonify({"ok": True, "user": user, "permissions": perms})
+
+
+# ── User Management API ──
+
+@app.route("/api/users", methods=["GET"])
+@require_permission("user_manage")
+def list_users():
+    return jsonify(meta_store.list_users())
+
+
+@app.route("/api/users", methods=["POST"])
+@require_permission("user_manage")
+def add_user():
+    data = request.json
+    uid = meta_store.add_user(data)
+    if uid:
+        return jsonify({"ok": True, "id": uid})
+    return jsonify({"ok": False, "error": "用户名已存在或参数错误"}), 400
+
+
+@app.route("/api/users/<int:user_id>", methods=["PUT"])
+@require_permission("user_manage")
+def update_user(user_id):
+    data = request.json
+    if meta_store.update_user(user_id, data):
+        return jsonify({"ok": True})
+    return jsonify({"ok": False, "error": "用户不存在或更新失败"}), 404
+
+
+@app.route("/api/users/<int:user_id>", methods=["DELETE"])
+@require_permission("user_manage")
+def delete_user(user_id):
+    current = get_current_user()
+    if current and current.get("id") == user_id:
+        return jsonify({"ok": False, "error": "不能删除自己"}), 400
+    if meta_store.delete_user(user_id):
+        return jsonify({"ok": True})
+    return jsonify({"ok": False, "error": "用户不存在"}), 404
+
+
+# ── Role Management API ──
+
+@app.route("/api/roles", methods=["GET"])
+@require_permission("user_manage")
+def list_roles():
+    return jsonify(meta_store.list_roles())
+
+
+@app.route("/api/roles", methods=["POST"])
+@require_permission("user_manage")
+def add_role():
+    data = request.json
+    rid = meta_store.add_role(data)
+    if rid:
+        return jsonify({"ok": True, "id": rid})
+    return jsonify({"ok": False, "error": "角色名已存在或参数错误"}), 400
+
+
+@app.route("/api/roles/<int:role_id>", methods=["PUT"])
+@require_permission("user_manage")
+def update_role(role_id):
+    data = request.json
+    if meta_store.update_role(role_id, data):
+        return jsonify({"ok": True})
+    return jsonify({"ok": False, "error": "角色不存在或更新失败"}), 404
+
+
+@app.route("/api/roles/<int:role_id>", methods=["DELETE"])
+@require_permission("user_manage")
+def delete_role(role_id):
+    if meta_store.delete_role(role_id):
+        return jsonify({"ok": True})
+    return jsonify({"ok": False, "error": "角色不存在"}), 404
+
+
+# ── Permission API ──
+
+@app.route("/api/permissions", methods=["GET"])
+@require_login
+def list_permissions():
+    return jsonify(meta_store.list_permissions())
 
 
 @app.route("/api/app-config/test-nacos", methods=["POST"])
