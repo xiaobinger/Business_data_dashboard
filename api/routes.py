@@ -14,6 +14,7 @@ from core.auth import (
     get_current_user, get_current_user_id, get_current_permissions, is_super_admin, get_current_username,
     touch_session, check_session_timeout,
 )
+from core.verify_code import send_sms_code, send_email_code, verify_code
 
 logger = logging.getLogger(__name__)
 
@@ -108,8 +109,12 @@ def get_columns(name, table):
 
 
 @app.route("/api/scripts", methods=["GET"])
+@require_login
 def list_scripts():
-    return jsonify(meta_store.list_scripts())
+    uid = get_current_user_id()
+    is_sa = is_super_admin()
+    has_sm = "script_manage" in get_current_permissions()
+    return jsonify(meta_store.list_scripts_for_user(uid, is_sa, has_sm))
 
 
 @app.route("/api/scripts", methods=["POST"])
@@ -410,6 +415,8 @@ def update_app_config():
         current["cache_ttl"] = int(data["cache_ttl"])
     if "session_timeout" in data:
         current["session_timeout"] = int(data["session_timeout"])
+    if "loading_style" in data:
+        current["loading_style"] = data["loading_style"]
     save_app_config(current)
     nacos_ok = False
     try:
@@ -459,13 +466,13 @@ def test_redis_connection():
 @app.route("/api/auth/login", methods=["POST"])
 def auth_login():
     data = request.json
-    username = data.get("username", "").strip()
+    login_key = data.get("username", "").strip()
     password = data.get("password", "")
-    if not username or not password:
+    if not login_key or not password:
         return jsonify({"ok": False, "error": "请输入用户名和密码"}), 400
-    user = login_user(username, password)
+    user = login_user(login_key, password)
     if not user:
-        return jsonify({"ok": False, "error": "用户名或密码错误"}), 401
+        return jsonify({"ok": False, "error": "用户名/手机号/邮箱或密码错误"}), 401
     perms = get_current_permissions()
     return jsonify({"ok": True, "user": user, "permissions": perms})
 
@@ -576,3 +583,161 @@ def test_nacos_connection():
         return jsonify({"ok": False, "error": "Nacos 连接失败"})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)})
+
+
+# ── Registration API ──
+
+@app.route("/api/auth/register", methods=["POST"])
+def auth_register():
+    data = request.json
+    username = data.get("username", "").strip()
+    password = data.get("password", "")
+    if not username or not password:
+        return jsonify({"ok": False, "error": "用户名和密码为必填项"}), 400
+    if len(password) < 6:
+        return jsonify({"ok": False, "error": "密码长度不能少于6位"}), 400
+    phone = data.get("phone", "").strip()
+    email = data.get("email", "").strip()
+    if phone:
+        sms_code = data.get("smsCode", "")
+        if not sms_code:
+            return jsonify({"ok": False, "error": "绑定手机号需要验证码"}), 400
+        ok, msg = verify_code(phone, "sms", sms_code)
+        if not ok:
+            return jsonify({"ok": False, "error": msg}), 400
+    if email:
+        email_code = data.get("emailCode", "")
+        if not email_code:
+            return jsonify({"ok": False, "error": "绑定邮箱需要验证码"}), 400
+        ok, msg = verify_code(email, "email", email_code)
+        if not ok:
+            return jsonify({"ok": False, "error": msg}), 400
+    uid = meta_store.register_user(data)
+    if uid:
+        return jsonify({"ok": True, "id": uid})
+    return jsonify({"ok": False, "error": "注册失败，用户名/手机号/邮箱可能已存在"}), 400
+
+
+# ── Uniqueness Check API ──
+
+@app.route("/api/auth/check-unique", methods=["POST"])
+def auth_check_unique():
+    data = request.json
+    field = data.get("field", "")
+    value = data.get("value", "").strip()
+    if not field or not value:
+        return jsonify({"ok": True, "unique": True})
+    uid = get_current_user_id()
+    unique = meta_store.check_unique_field(field, value, uid)
+    return jsonify({"ok": True, "unique": unique})
+
+
+# ── Profile API ──
+
+@app.route("/api/profile", methods=["GET"])
+@require_login
+def get_profile():
+    user = get_current_user()
+    if not user:
+        return jsonify({"ok": False, "error": "未登录"}), 401
+    perms = get_current_permissions()
+    return jsonify({"ok": True, "user": user, "permissions": perms})
+
+
+@app.route("/api/profile", methods=["PUT"])
+@require_login
+def update_profile():
+    data = request.json
+    uid = get_current_user_id()
+    if not uid:
+        return jsonify({"ok": False, "error": "未登录"}), 401
+    current_user = meta_store.get_user_by_id(uid)
+    phone = data.get("phone", "").strip()
+    email = data.get("email", "").strip()
+    if phone and phone != (current_user.get("phone") or ""):
+        sms_code = data.get("smsCode", "")
+        if not sms_code:
+            return jsonify({"ok": False, "error": "绑定手机号需要验证码"}), 400
+        ok, msg = verify_code(phone, "sms", sms_code)
+        if not ok:
+            return jsonify({"ok": False, "error": msg}), 400
+    if email and email != (current_user.get("email") or ""):
+        email_code = data.get("emailCode", "")
+        if not email_code:
+            return jsonify({"ok": False, "error": "绑定邮箱需要验证码"}), 400
+        ok, msg = verify_code(email, "email", email_code)
+        if not ok:
+            return jsonify({"ok": False, "error": msg}), 400
+    if meta_store.update_user_profile(uid, data):
+        updated = meta_store.get_user_by_id(uid)
+        return jsonify({"ok": True, "user": updated})
+    return jsonify({"ok": False, "error": "更新失败，手机号或邮箱可能已被占用"}), 400
+
+
+@app.route("/api/profile/password", methods=["PUT"])
+@require_login
+def change_password():
+    data = request.json
+    uid = get_current_user_id()
+    old_pwd = data.get("oldPassword", "")
+    new_pwd = data.get("newPassword", "")
+    if not old_pwd or not new_pwd:
+        return jsonify({"ok": False, "error": "请输入旧密码和新密码"}), 400
+    if len(new_pwd) < 6:
+        return jsonify({"ok": False, "error": "新密码长度不能少于6位"}), 400
+    if meta_store.change_user_password(uid, old_pwd, new_pwd):
+        return jsonify({"ok": True})
+    return jsonify({"ok": False, "error": "旧密码不正确"}), 400
+
+
+# ── Verification Code API ──
+
+@app.route("/api/verify/sms", methods=["POST"])
+def send_sms_verify():
+    data = request.json
+    phone = data.get("phone", "").strip()
+    if not phone:
+        return jsonify({"ok": False, "error": "请输入手机号"}), 400
+    ok, msg, code = send_sms_code(phone)
+    if ok:
+        return jsonify({"ok": True, "message": msg, "demoCode": code})
+    return jsonify({"ok": False, "error": msg}), 400
+
+
+@app.route("/api/verify/email", methods=["POST"])
+def send_email_verify():
+    data = request.json
+    email = data.get("email", "").strip()
+    if not email:
+        return jsonify({"ok": False, "error": "请输入邮箱"}), 400
+    ok, msg, code = send_email_code(email)
+    if ok:
+        return jsonify({"ok": True, "message": msg, "demoCode": code})
+    return jsonify({"ok": False, "error": msg}), 400
+
+
+# ── User Script Authorization API ──
+
+@app.route("/api/users/<int:user_id>/scripts", methods=["GET"])
+@require_permission("user_manage")
+def get_user_scripts(user_id):
+    scripts = meta_store.get_user_authorized_scripts(user_id)
+    return jsonify({"ok": True, "scriptNames": scripts})
+
+
+@app.route("/api/users/<int:user_id>/scripts", methods=["PUT"])
+@require_permission("user_manage")
+def set_user_scripts(user_id):
+    data = request.json
+    script_names = data.get("scriptNames", [])
+    if meta_store.set_user_authorized_scripts(user_id, script_names):
+        return jsonify({"ok": True})
+    return jsonify({"ok": False, "error": "设置失败"}), 400
+
+
+# ── All Scripts (for admin assignment) ──
+
+@app.route("/api/all-scripts", methods=["GET"])
+@require_login
+def list_all_scripts():
+    return jsonify(meta_store.list_scripts())

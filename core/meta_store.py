@@ -89,6 +89,7 @@ class Script(Base):
     description = Column(Text, default="")
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    authorized_users = relationship("User", secondary="user_scripts", back_populates="authorized_scripts")
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -119,23 +120,29 @@ class User(Base):
     username = Column(String(255), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
     display_name = Column(String(255), default="")
+    phone = Column(String(20), unique=True, nullable=True)
+    email = Column(String(255), unique=True, nullable=True)
     is_super_admin = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
     roles = relationship("Role", secondary="user_roles", back_populates="users")
+    authorized_scripts = relationship("Script", secondary="user_scripts", back_populates="authorized_users")
 
     def to_dict(self, include_roles=True) -> Dict[str, Any]:
         d = {
             "id": self.id,
             "username": self.username,
             "displayName": self.display_name,
+            "phone": self.phone or "",
+            "email": self.email or "",
             "isSuperAdmin": self.is_super_admin,
             "isActive": self.is_active,
             "createdAt": self.created_at.isoformat() if self.created_at else None,
         }
         if include_roles:
             d["roles"] = [r.to_dict(include_users=False) for r in self.roles]
+            d["authorizedScriptNames"] = [s.name for s in self.authorized_scripts]
         return d
 
 
@@ -196,6 +203,13 @@ class RolePermission(Base):
     permission_id = Column(Integer, ForeignKey("permissions.id", ondelete="CASCADE"), nullable=False)
 
 
+class UserScript(Base):
+    __tablename__ = "user_scripts"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    script_id = Column(Integer, ForeignKey("scripts.id", ondelete="CASCADE"), nullable=False)
+
+
 _engine: Optional[Engine] = None
 _SessionLocal: Optional[sessionmaker] = None
 _lock = threading.Lock()
@@ -222,6 +236,7 @@ def init_meta_store() -> bool:
             url = _build_db_url(cfg)
             _engine = create_engine(url, pool_pre_ping=True, pool_recycle=3600)
             Base.metadata.create_all(_engine)
+            _migrate_schema(_engine)
             _SessionLocal = sessionmaker(bind=_engine)
             _seed_if_empty()
             _initialized = True
@@ -253,6 +268,24 @@ def _get_session() -> Session:
     if _SessionLocal is None:
         raise RuntimeError("meta_store 未初始化，请先调用 init_meta_store()")
     return _SessionLocal()
+
+
+def _migrate_schema(engine: Engine):
+    import sqlalchemy as sa
+    insp = sa.inspect(engine)
+    existing_cols = {c["name"] for c in insp.get_columns("users")}
+    migrations = [
+        ("phone", "ALTER TABLE users ADD COLUMN phone VARCHAR(20) NULL UNIQUE"),
+        ("email", "ALTER TABLE users ADD COLUMN email VARCHAR(255) NULL UNIQUE"),
+    ]
+    with engine.begin() as conn:
+        for col_name, sql in migrations:
+            if col_name not in existing_cols:
+                try:
+                    conn.execute(text(sql))
+                    logger.info("已迁移: 添加 users.%s 列", col_name)
+                except Exception as e:
+                    logger.warning("迁移 users.%s 失败: %s", col_name, e)
 
 
 def _seed_if_empty():
@@ -645,10 +678,18 @@ def add_user(data: Dict[str, Any]) -> Optional[int]:
             return None
         if session.query(User).filter_by(username=username).first():
             return None
+        phone = data.get("phone", "").strip() or None
+        email = data.get("email", "").strip() or None
+        if phone and session.query(User).filter_by(phone=phone).first():
+            return None
+        if email and session.query(User).filter_by(email=email).first():
+            return None
         user = User(
             username=username,
             password_hash=generate_password_hash(data.get("password", "")),
             display_name=data.get("displayName", ""),
+            phone=phone,
+            email=email,
             is_super_admin=data.get("isSuperAdmin", False),
             is_active=data.get("isActive", True),
         )
@@ -660,6 +701,12 @@ def add_user(data: Dict[str, Any]) -> Optional[int]:
                 role = session.query(Role).filter_by(id=rid).first()
                 if role:
                     user.roles.append(role)
+        script_names = data.get("authorizedScriptNames", [])
+        if script_names:
+            for name in script_names:
+                script = session.query(Script).filter_by(name=name).first()
+                if script:
+                    user.authorized_scripts.append(script)
         session.commit()
         return user.id
     except Exception:
@@ -686,12 +733,32 @@ def update_user(user_id: int, data: Dict[str, Any]) -> bool:
             user.is_active = data["isActive"]
         if "isSuperAdmin" in data:
             user.is_super_admin = data["isSuperAdmin"]
+        if "phone" in data:
+            phone = data["phone"].strip() or None
+            if phone:
+                existing = session.query(User).filter(User.phone == phone, User.id != user_id).first()
+                if existing:
+                    return False
+            user.phone = phone
+        if "email" in data:
+            email = data["email"].strip() or None
+            if email:
+                existing = session.query(User).filter(User.email == email, User.id != user_id).first()
+                if existing:
+                    return False
+            user.email = email
         if "roleIds" in data:
             user.roles = []
             for rid in data["roleIds"]:
                 role = session.query(Role).filter_by(id=rid).first()
                 if role:
                     user.roles.append(role)
+        if "authorizedScriptNames" in data:
+            user.authorized_scripts = []
+            for name in data["authorizedScriptNames"]:
+                script = session.query(Script).filter_by(name=name).first()
+                if script:
+                    user.authorized_scripts.append(script)
         user.updated_at = datetime.now()
         session.commit()
         return True
@@ -818,6 +885,193 @@ def list_permissions() -> List[Dict[str, Any]]:
     session = _get_session()
     try:
         rows = session.query(Permission).order_by(Permission.id).all()
+        return [r.to_dict() for r in rows]
+    finally:
+        session.close()
+
+
+# ── Registration & Multi-auth ──
+
+def register_user(data: Dict[str, Any]) -> Optional[int]:
+    if not init_meta_store():
+        return None
+    from werkzeug.security import generate_password_hash
+    session = _get_session()
+    try:
+        username = data.get("username", "").strip()
+        password = data.get("password", "")
+        if not username or not password:
+            return None
+        if session.query(User).filter_by(username=username).first():
+            return None
+        phone = data.get("phone", "").strip() or None
+        email = data.get("email", "").strip() or None
+        if phone and session.query(User).filter_by(phone=phone).first():
+            return None
+        if email and session.query(User).filter_by(email=email).first():
+            return None
+        user = User(
+            username=username,
+            password_hash=generate_password_hash(password),
+            display_name=data.get("displayName", ""),
+            phone=phone,
+            email=email,
+            is_super_admin=False,
+            is_active=True,
+        )
+        session.add(user)
+        session.commit()
+        return user.id
+    except Exception:
+        session.rollback()
+        return None
+    finally:
+        session.close()
+
+
+def authenticate_user_multi(login_key: str, password: str) -> Optional[Dict[str, Any]]:
+    if not init_meta_store():
+        return None
+    from werkzeug.security import check_password_hash
+    session = _get_session()
+    try:
+        login_key = login_key.strip()
+        if not login_key:
+            return None
+        user = session.query(User).filter_by(is_active=True).filter(
+            (User.username == login_key) | (User.phone == login_key) | (User.email == login_key)
+        ).first()
+        if user and check_password_hash(user.password_hash, password):
+            return user.to_dict()
+        return None
+    finally:
+        session.close()
+
+
+def check_unique_field(field: str, value: str, exclude_user_id: int = None) -> bool:
+    if not init_meta_store():
+        return False
+    session = _get_session()
+    try:
+        col_map = {"username": User.username, "phone": User.phone, "email": User.email}
+        col = col_map.get(field)
+        if not col:
+            return False
+        q = session.query(User).filter(col == value.strip())
+        if exclude_user_id:
+            q = q.filter(User.id != exclude_user_id)
+        return q.first() is None
+    finally:
+        session.close()
+
+
+# ── Profile ──
+
+def update_user_profile(user_id: int, data: Dict[str, Any]) -> bool:
+    if not init_meta_store():
+        return False
+    session = _get_session()
+    try:
+        user = session.query(User).filter_by(id=user_id).first()
+        if not user:
+            return False
+        if "displayName" in data:
+            user.display_name = data["displayName"]
+        if "phone" in data:
+            phone = data["phone"].strip() or None
+            if phone:
+                existing = session.query(User).filter(User.phone == phone, User.id != user_id).first()
+                if existing:
+                    return False
+            user.phone = phone
+        if "email" in data:
+            email = data["email"].strip() or None
+            if email:
+                existing = session.query(User).filter(User.email == email, User.id != user_id).first()
+                if existing:
+                    return False
+            user.email = email
+        user.updated_at = datetime.now()
+        session.commit()
+        return True
+    except Exception:
+        session.rollback()
+        return False
+    finally:
+        session.close()
+
+
+def change_user_password(user_id: int, old_password: str, new_password: str) -> bool:
+    if not init_meta_store():
+        return False
+    from werkzeug.security import check_password_hash, generate_password_hash
+    session = _get_session()
+    try:
+        user = session.query(User).filter_by(id=user_id).first()
+        if not user:
+            return False
+        if not check_password_hash(user.password_hash, old_password):
+            return False
+        user.password_hash = generate_password_hash(new_password)
+        user.updated_at = datetime.now()
+        session.commit()
+        return True
+    except Exception:
+        session.rollback()
+        return False
+    finally:
+        session.close()
+
+
+# ── User Script Authorization ──
+
+def get_user_authorized_scripts(user_id: int) -> List[str]:
+    if not init_meta_store():
+        return []
+    session = _get_session()
+    try:
+        user = session.query(User).filter_by(id=user_id).first()
+        if not user:
+            return []
+        return [s.name for s in user.authorized_scripts]
+    finally:
+        session.close()
+
+
+def set_user_authorized_scripts(user_id: int, script_names: List[str]) -> bool:
+    if not init_meta_store():
+        return False
+    session = _get_session()
+    try:
+        user = session.query(User).filter_by(id=user_id).first()
+        if not user:
+            return False
+        user.authorized_scripts = []
+        for name in script_names:
+            script = session.query(Script).filter_by(name=name).first()
+            if script:
+                user.authorized_scripts.append(script)
+        session.commit()
+        return True
+    except Exception:
+        session.rollback()
+        return False
+    finally:
+        session.close()
+
+
+def list_scripts_for_user(user_id: int, is_super_admin: bool, has_script_manage: bool) -> List[Dict[str, Any]]:
+    if not init_meta_store():
+        return []
+    session = _get_session()
+    try:
+        if is_super_admin or has_script_manage:
+            rows = session.query(Script).order_by(Script.id).all()
+        else:
+            user = session.query(User).filter_by(id=user_id).first()
+            if not user:
+                return []
+            rows = user.authorized_scripts
         return [r.to_dict() for r in rows]
     finally:
         session.close()

@@ -1,6 +1,6 @@
 # 📊 Business Data Dashboard
 
-业务数据看板桌面工具，基于 Flask + ECharts 构建，支持多数据源查询、图表钻取、主题切换，集成 Nacos 配置中心、Redis 查询缓存与 MySQL 元数据管理，内置 RBAC 用户权限体系与会话管理。
+业务数据看板桌面工具，基于 Flask + ECharts 构建，支持多数据源查询、图表钻取、主题切换，集成 Nacos 配置中心、Redis 查询缓存与 MySQL 元数据管理，内置 RBAC 用户权限体系、人机校验、验证码验证与会话管理。
 
 ---
 
@@ -13,9 +13,17 @@
 - **主题系统**：双层主题架构，全局色调 + 看板色调独立切换，过渡动画自动跟随
 - **查询缓存**：基于 Redis 的查询结果缓存，相同查询条件直接命中缓存，支持强制刷新
 - **快捷查询**：保存常用查询条件，一键快速执行，数据持久化到 MySQL
-- **脚本管理**：SQL 脚本模板管理，支持参数化查询，数据持久化到 MySQL
+- **脚本管理**：SQL 脚本模板管理，支持参数化查询，可关联多个数据源，数据持久化到 MySQL
 - **RBAC 权限体系**：用户-角色-权限三级模型，超级管理员/子管理员/普通用户分层管理
+- **用户注册**：支持用户名+密码注册，可选填手机号/邮箱（需验证码验证）
+- **多方式登录**：支持用户名、手机号、邮箱三种方式登录
+- **人机校验**：登录和注册页均需滑块验证码
+- **验证码验证**：绑定手机号需短信验证码，绑定邮箱需邮箱验证码（当前为模拟模式）
+- **个人中心**：修改密码、绑定/更新手机号和邮箱
+- **脚本授权**：超级管理员为每个用户分配可使用的查询脚本
+- **脚本-数据源联动**：选择脚本后自动显示关联的数据源/通道，未选脚本时数据源区域隐藏
 - **会话管理**：可配置的会话超时时间，空闲超时自动登出，前后端双重检测
+- **加载动画**：6 种炫酷加载效果（orbit/wave/dna/vortex/cyber/helix），可在系统设置中选择
 - **系统设置**：前端可视化配置 Nacos 连接信息、缓存过期时间、会话超时，实时检测连接状态
 
 ---
@@ -35,11 +43,12 @@ data_dashboard/
 │   ├── auth.py              # 认证模块，登录/登出/权限装饰器/会话超时检测
 │   ├── cache.py             # Redis 查询缓存（动态导入，降级为内存缓存）
 │   ├── nacos_config.py      # Nacos 配置中心客户端（适配 v3.x async API）
-│   ├── meta_store.py        # 元数据库管理（快捷查询、脚本、RBAC 的 MySQL 持久化）
+│   ├── meta_store.py        # 元数据库管理（快捷查询、脚本、RBAC、用户脚本授权的 MySQL 持久化）
 │   ├── db_manager.py        # 数据库连接管理、SQL 执行
 │   ├── query_engine.py      # 查询引擎，维度参数构建、合并查询
 │   ├── data_merger.py       # 多数据源数据合并
-│   └── ssh_tunnel.py        # SSH 隧道，支持通过跳板机连接数据库
+│   ├── ssh_tunnel.py        # SSH 隧道，支持通过跳板机连接数据库
+│   └── verify_code.py       # 验证码服务（短信/邮箱验证码生成、发送、校验）
 ├── static/
 │   └── index.html           # 前端单页面（HTML + CSS + JS）
 ├── data/                    # 运行时数据目录（git 忽略）
@@ -105,9 +114,15 @@ python main.py
 
 | 类型 | 说明 |
 |------|------|
-| 超级管理员 | 拥有所有权限，可管理子管理员和普通用户 |
+| 超级管理员 | 拥有所有权限，可管理子管理员和普通用户，为用户分配脚本授权 |
 | 子管理员 | 可管理用户、角色和权限分配 |
-| 普通用户 | 根据角色授权获得相应权限 |
+| 普通用户 | 根据角色授权获得相应权限，只能使用被授权的脚本查询 |
+
+### 用户注册与登录
+
+- **注册**：用户名+密码必填，手机号/邮箱选填（填写时需验证码验证），首次注册默认为普通用户无任何权限
+- **登录**：支持用户名、手机号、邮箱三种方式登录，登录时需完成滑块人机校验
+- **个人中心**：修改密码、绑定/更新手机号和邮箱（绑定需验证码验证，已绑定后显示"更新"按钮）
 
 ### 内置权限
 
@@ -135,12 +150,24 @@ python main.py
 | `system_settings` | 隐藏系统设置按钮 |
 | `user_manage` | 隐藏用户管理按钮 |
 
+### 脚本授权
+
+- 超级管理员必须为每个用户设置可使用的查询脚本，否则用户没有可选的查询脚本
+- 普通用户只能看到被授权的脚本，超管和有脚本管理权限的用户可看到所有脚本
+- 脚本授权在用户管理界面中操作，也可在用户列表中点击"脚本"按钮单独设置
+
+### 脚本-数据源联动
+
+- 添加/编辑脚本时可关联一个或多个数据源（通道）
+- 主界面选择脚本后，数据源/通道区域自动出现，且只显示该脚本关联的数据源
+- 未选择脚本时，数据源/通道区域隐藏
+
 ### 会话管理
 
 - 会话超时时间可在 **系统设置** 中配置，默认 30 分钟
 - 后端通过 `before_request` 钩子检测每次 API 请求的空闲时间，超时自动清空登录状态
 - 前端每 60 秒发送心跳检测会话状态，超时自动跳转登录页并提示
-- 登录/登出接口不受会话超时检测影响
+- 登录/登出/注册/验证码接口不受会话超时检测影响
 
 ---
 
@@ -160,6 +187,7 @@ python main.py
 │  meta_data_id      │
 │ cache_ttl          │
 │ session_timeout    │
+│ loading_style      │
 └───────────────────┘
 ```
 
@@ -175,6 +203,7 @@ python main.py
 | 元数据库连接 | Nacos `data_dashboard_meta` | 只从 Nacos 读写 |
 | 缓存过期时间 | `data/app_config.json` | 本地存储，默认 3600 秒 |
 | 会话超时时间 | `data/app_config.json` | 本地存储，默认 30 分钟 |
+| 加载动画风格 | `data/app_config.json` | 本地存储，默认 orbit |
 
 ### 环境变量覆盖
 
@@ -242,7 +271,7 @@ python main.py
 }
 ```
 
-> 元数据库用于持久化存储快捷查询、脚本配置和 RBAC 权限数据。系统启动时会自动建表，如果表为空则插入内置的种子数据。
+> 元数据库用于持久化存储快捷查询、脚本配置、RBAC 权限数据和用户脚本授权。系统启动时会自动建表和迁移新列，如果表为空则插入内置的种子数据。
 
 ---
 
@@ -260,6 +289,8 @@ python main.py
 | username | VARCHAR(255) | 用户名（唯一） |
 | password_hash | VARCHAR(255) | 密码哈希（werkzeug） |
 | display_name | VARCHAR(255) | 显示名 |
+| phone | VARCHAR(20) | 手机号（唯一，可为空） |
+| email | VARCHAR(255) | 邮箱（唯一，可为空） |
 | is_super_admin | BOOLEAN | 是否超级管理员 |
 | is_active | BOOLEAN | 是否启用 |
 | created_at | DATETIME | 创建时间 |
@@ -300,6 +331,14 @@ python main.py
 | role_id | INT | 角色 ID（外键） |
 | permission_id | INT | 权限 ID（外键） |
 
+**user_scripts** — 用户-脚本授权关联表
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | INT | 自增主键 |
+| user_id | INT | 用户 ID（外键） |
+| script_id | INT | 脚本 ID（外键） |
+
 **quick_queries** — 快捷查询表
 
 | 字段 | 类型 | 说明 |
@@ -331,11 +370,15 @@ python main.py
 | name | VARCHAR(255) | 脚本名称（唯一） |
 | sql | TEXT | SQL 模板（支持 `{{参数}}` 占位符） |
 | chart_type | VARCHAR(50) | 默认图表类型 |
-| conn_name | VARCHAR(255) | 默认数据源 |
-| merge_conn_names | JSON | 合并数据源列表 |
+| conn_name | VARCHAR(255) | 主数据源 |
+| merge_conn_names | JSON | 关联的其他数据源列表 |
 | description | TEXT | 脚本描述 |
 | created_at | DATETIME | 创建时间 |
 | updated_at | DATETIME | 更新时间 |
+
+### 数据库迁移
+
+系统启动时自动检测并迁移新增的列（如 `users.phone`、`users.email`），无需手动执行 ALTER TABLE。
 
 ### 种子数据
 
@@ -356,9 +399,28 @@ python main.py
 
 | 端点 | 方法 | 说明 |
 |------|------|------|
-| `/api/auth/login` | POST | 用户登录 |
+| `/api/auth/login` | POST | 用户登录（支持用户名/手机号/邮箱） |
 | `/api/auth/logout` | POST | 用户登出 |
 | `/api/auth/me` | GET | 获取当前登录用户信息 |
+| `/api/auth/register` | POST | 用户注册（手机号/邮箱需验证码） |
+| `/api/auth/check-unique` | POST | 唯一性校验（用户名/手机号/邮箱） |
+
+### 验证码接口
+
+| 端点 | 方法 | 说明 |
+|------|------|------|
+| `/api/verify/sms` | POST | 发送短信验证码（无需登录） |
+| `/api/verify/email` | POST | 发送邮箱验证码（无需登录） |
+
+> 当前验证码系统为模拟模式，验证码通过 toast 通知显示。对接真实短信/邮件服务时只需修改 `core/verify_code.py`。
+
+### 个人中心接口
+
+| 端点 | 方法 | 权限 | 说明 |
+|------|------|------|------|
+| `/api/profile` | GET | 登录即可 | 获取当前用户信息 |
+| `/api/profile` | PUT | 登录即可 | 更新个人信息（手机号/邮箱需验证码） |
+| `/api/profile/password` | PUT | 登录即可 | 修改密码 |
 
 ### 数据源接口
 
@@ -376,10 +438,11 @@ python main.py
 
 | 端点 | 方法 | 权限 | 说明 |
 |------|------|------|------|
-| `/api/scripts` | GET | — | 获取脚本列表 |
+| `/api/scripts` | GET | 登录即可 | 获取脚本列表（按用户权限过滤） |
 | `/api/scripts` | POST | `script_manage` | 新增脚本 |
 | `/api/scripts/<name>` | PUT | `script_manage` | 更新脚本 |
 | `/api/scripts/<name>` | DELETE | `script_manage` | 删除脚本 |
+| `/api/all-scripts` | GET | 登录即可 | 获取所有脚本（用于管理员分配） |
 
 ### 查询接口
 
@@ -406,6 +469,8 @@ python main.py
 | `/api/users` | POST | `user_manage` | 新增用户 |
 | `/api/users/<id>` | PUT | `user_manage` | 更新用户 |
 | `/api/users/<id>` | DELETE | `user_manage` | 删除用户 |
+| `/api/users/<id>/scripts` | GET | `user_manage` | 获取用户授权脚本 |
+| `/api/users/<id>/scripts` | PUT | `user_manage` | 设置用户授权脚本 |
 | `/api/roles` | GET | `user_manage` | 获取角色列表 |
 | `/api/roles` | POST | `user_manage` | 新增角色 |
 | `/api/roles/<id>` | PUT | `user_manage` | 更新角色 |
@@ -506,10 +571,11 @@ chmod +x deploy.sh
 |------|------|
 | 后端 | Flask、SQLAlchemy、Pandas |
 | 认证 | Flask Session、werkzeug 密码哈希 |
+| 验证码 | 自研验证码服务（模拟模式，可对接短信/邮件网关） |
 | 前端 | ECharts、原生 HTML/CSS/JS |
 | 缓存 | Redis（降级为内存缓存） |
 | 配置中心 | Nacos（nacos-sdk-python v3.x） |
-| 元数据存储 | MySQL（快捷查询、脚本、RBAC 持久化） |
+| 元数据存储 | MySQL（快捷查询、脚本、RBAC、用户脚本授权持久化） |
 | 数据库 | MySQL、PostgreSQL、SQLite |
 | 部署 | Jenkins Pipeline、Shell 脚本 |
 

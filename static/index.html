@@ -404,9 +404,18 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 @keyframes gridFadeOut{from{opacity:1;transform:scale(1);filter:blur(0)}to{opacity:0;transform:scale(.97);filter:blur(6px)}}
 @keyframes gridFadeIn{from{opacity:0;transform:scale(.97);filter:blur(6px)}to{opacity:1;transform:scale(1);filter:blur(0)}}
 @keyframes pulseRing{0%{transform:scale(.3);opacity:.8}100%{transform:scale(2.5);opacity:0}}
-@keyframes particleDrift{0%{transform:translate(0,0) scale(1);opacity:.9}100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
+@keyframes particleDrift{0%{transform:translate(0,0) scale(1);opacity:.9}80%{opacity:.3}100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
 @keyframes scanLine{0%{left:-30%;opacity:0}10%{opacity:.6}90%{opacity:.6}100%{left:130%;opacity:0}}
 @keyframes orbitDot{0%{transform:rotate(var(--start-angle)) translateX(var(--orbit-r)) scale(1)}50%{transform:rotate(calc(var(--start-angle) + 180deg)) translateX(var(--orbit-r)) scale(.6)}100%{transform:rotate(calc(var(--start-angle) + 360deg)) translateX(var(--orbit-r)) scale(1)}}
+@keyframes helixSpin{0%{transform:rotateY(0deg)}100%{transform:rotateY(360deg)}}
+@keyframes helixDot{0%{transform:rotate(var(--h-angle)) translateX(var(--h-r)) scale(var(--h-s1));opacity:var(--h-o1)}50%{transform:rotate(calc(var(--h-angle) + 180deg)) translateX(var(--h-r)) scale(var(--h-s2));opacity:var(--h-o2)}100%{transform:rotate(calc(var(--h-angle) + 360deg)) translateX(var(--h-r)) scale(var(--h-s1));opacity:var(--h-o1)}}
+@keyframes waveBar{0%,100%{transform:scaleY(var(--w-min));opacity:.5}50%{transform:scaleY(var(--w-max));opacity:1}}
+@keyframes dnaStrand{0%{transform:rotateZ(var(--d-angle)) translateY(calc(var(--d-offset) * 1px))}25%{transform:rotateZ(calc(var(--d-angle) + 90deg)) translateY(calc(var(--d-offset) * -1px))}50%{transform:rotateZ(calc(var(--d-angle) + 180deg)) translateY(calc(var(--d-offset) * 1px))}75%{transform:rotateZ(calc(var(--d-angle) + 270deg)) translateY(calc(var(--d-offset) * -1px))}100%{transform:rotateZ(calc(var(--d-angle) + 360deg)) translateY(calc(var(--d-offset) * 1px))}}
+@keyframes vortexSpin{0%{transform:rotate(0deg) scale(1);opacity:.8}50%{transform:rotate(180deg) scale(.5);opacity:.4}100%{transform:rotate(360deg) scale(1);opacity:.8}}
+@keyframes vortexRing{0%{transform:rotate(var(--v-start)) scale(var(--v-s));opacity:var(--v-o)}100%{transform:rotate(calc(var(--v-start) + 360deg)) scale(calc(var(--v-s) * 1.5));opacity:0}}
+@keyframes cyberGlitch{0%,100%{transform:translate(0,0);clip-path:inset(0 0 0 0)}10%{transform:translate(-3px,2px);clip-path:inset(20% 0 60% 0)}20%{transform:translate(3px,-2px);clip-path:inset(60% 0 10% 0)}30%{transform:translate(0,0);clip-path:inset(0 0 0 0)}70%{transform:translate(2px,1px);clip-path:inset(40% 0 30% 0)}80%{transform:translate(-2px,-1px);clip-path:inset(10% 0 70% 0)}90%{transform:translate(0,0);clip-path:inset(0 0 0 0)}}
+@keyframes cyberScan{0%{top:-2px;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:calc(100% + 2px);opacity:0}}
+@keyframes cyberFlicker{0%,100%{opacity:1}50%{opacity:.3}}
 .chart-grid.fading-out{animation:gridFadeOut .35s ease both;pointer-events:none}
 .chart-grid.fading-in{animation:gridFadeIn .45s cubic-bezier(.23,1,.32,1) both}
 .grid-loading-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:10;pointer-events:none;overflow:hidden}
@@ -415,7 +424,16 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .grid-loading-overlay .pulse-ring:nth-child(3){animation-delay:1.2s;border-color:var(--accent3)}
 .grid-loading-overlay .orbit-dot{position:absolute;width:6px;height:6px;border-radius:50%;animation:orbitDot var(--orbit-dur) linear infinite;box-shadow:0 0 8px var(--dot-color)}
 .grid-loading-overlay .scan-line{position:absolute;top:0;width:30%;height:100%;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0;animation:scanLine 2s ease-in-out infinite;filter:blur(1px)}
-.grid-loading-overlay .particle{position:absolute;width:var(--p-size);height:var(--p-size);border-radius:50%;background:var(--p-color);animation:particleDrift var(--p-dur) ease-out forwards;box-shadow:0 0 6px var(--p-color)}
+.grid-loading-overlay .particle{position:absolute;width:var(--p-size);height:var(--p-size);border-radius:50%;background:var(--p-color);animation:particleDrift var(--p-dur) ease-out infinite;box-shadow:0 0 6px var(--p-color)}
+.grid-loading-overlay .wave-bar{width:4px;border-radius:2px;animation:waveBar var(--w-dur) ease-in-out infinite}
+.grid-loading-overlay .dna-dot{position:absolute;width:6px;height:6px;border-radius:50%;animation:dnaStrand var(--d-dur) linear infinite}
+.grid-loading-overlay .dna-line{position:absolute;width:1px;background:var(--d-color);opacity:.3;animation:dnaStrand var(--d-dur) linear infinite}
+.grid-loading-overlay .vortex-ring{position:absolute;border-radius:50%;border:2px solid var(--v-color);animation:vortexRing var(--v-dur) linear infinite}
+.grid-loading-overlay .vortex-core{width:10px;height:10px;border-radius:50%;animation:vortexSpin 2s linear infinite}
+.grid-loading-overlay .cyber-block{position:absolute;font-size:11px;font-weight:700;font-family:monospace;letter-spacing:2px;animation:cyberGlitch 1.5s infinite}
+.grid-loading-overlay .cyber-scan{position:absolute;left:0;width:100%;height:2px;background:var(--accent);animation:cyberScan 2s linear infinite;opacity:.8}
+.grid-loading-overlay .cyber-corner{position:absolute;width:20px;height:20px;border-color:var(--accent);border-style:solid;border-width:0;animation:cyberFlicker 2s infinite}
+.grid-loading-overlay .helix-dot{position:absolute;width:5px;height:5px;border-radius:50%;animation:helixDot var(--h-dur) linear infinite}
 .loading-dot{display:inline-block;animation:pulse 1.2s infinite}
 .loading-dot:nth-child(2){animation-delay:.2s}
 .loading-dot:nth-child(3){animation-delay:.4s}
@@ -469,17 +487,69 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .perm-checkbox-item:hover{background:var(--glass-hover)}
 .perm-checkbox-item.checked{background:rgba(0,212,255,0.12);border-color:rgba(0,212,255,0.3);color:var(--accent)}
 .perm-checkbox-item input{display:none}
+
+.slider-captcha{margin-bottom:14px;user-select:none}
+.slider-track{position:relative;width:100%;height:36px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.slider-track-fill{position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,rgba(0,212,255,0.15),rgba(124,58,237,0.15));border-radius:8px;transition:width .1s}
+.slider-track-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-dim);pointer-events:none}
+.slider-thumb{position:absolute;top:2px;left:0;width:32px;height:32px;border-radius:6px;background:linear-gradient(135deg,var(--accent2),var(--accent));cursor:grab;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;transition:box-shadow .2s;z-index:2}
+.slider-thumb:hover{box-shadow:0 0 12px rgba(0,212,255,0.4)}
+.slider-thumb:active{cursor:grabbing}
+.slider-captcha.success .slider-track-fill{background:linear-gradient(90deg,rgba(16,185,129,0.2),rgba(16,185,129,0.3))}
+.slider-captcha.success .slider-thumb{background:linear-gradient(135deg,#059669,#10b981)}
+
+.login-switch{display:flex;justify-content:center;margin-top:12px;gap:4px;font-size:11px;color:var(--text-dim)}
+.login-switch a{color:var(--accent);cursor:pointer;text-decoration:none;font-weight:500}
+.login-switch a:hover{text-decoration:underline}
+
+.profile-btn{background:var(--glass);border:1px solid var(--border);border-radius:6px;color:var(--text-dim);font-size:11px;cursor:pointer;padding:2px 10px;transition:all .2s;white-space:nowrap}
+.profile-btn:hover{color:var(--accent);border-color:var(--accent);background:var(--glass-hover)}
+
+.script-auth-grid{display:flex;flex-wrap:wrap;gap:6px;max-height:200px;overflow-y:auto;padding:4px 0}
+.script-auth-item{display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;background:var(--glass);font-size:11px;color:var(--text-dim);cursor:pointer;transition:all .2s;border:1px solid transparent;user-select:none}
+.script-auth-item:hover{background:var(--glass-hover)}
+.script-auth-item.checked{background:rgba(0,212,255,0.12);border-color:rgba(0,212,255,0.3);color:var(--accent)}
+.script-auth-item input{display:none}
 </style>
 </head>
 <body>
 <div class="login-overlay" id="loginOverlay">
-  <div class="login-box">
+  <div class="login-box" id="loginBox">
     <h2>⚡ DataDashboard</h2>
-    <div class="login-sub">请登录以继续</div>
-    <div class="form-group"><label>用户名</label><input type="text" id="loginUsername" placeholder="输入用户名" autocomplete="username"></div>
-    <div class="form-group"><label>密码</label><input type="password" id="loginPassword" placeholder="输入密码" autocomplete="current-password"></div>
-    <button class="login-btn" id="loginBtn" onclick="doLogin()">登 录</button>
-    <div class="login-error" id="loginError"></div>
+    <div class="login-sub" id="loginSub">请登录以继续</div>
+    <div id="loginFormArea">
+      <div class="form-group"><label>用户名 / 手机号 / 邮箱</label><input type="text" id="loginUsername" placeholder="输入用户名、手机号或邮箱" autocomplete="username"></div>
+      <div class="form-group"><label>密码</label><input type="password" id="loginPassword" placeholder="输入密码" autocomplete="current-password"></div>
+      <div class="slider-captcha" id="sliderCaptcha">
+        <div class="slider-track" id="sliderTrack">
+          <div class="slider-track-fill" id="sliderFill"></div>
+          <div class="slider-track-text" id="sliderText">👉 拖动滑块验证</div>
+          <div class="slider-thumb" id="sliderThumb">▶</div>
+        </div>
+      </div>
+      <button class="login-btn" id="loginBtn" onclick="doLogin()">登 录</button>
+      <div class="login-error" id="loginError"></div>
+      <div class="login-switch">还没有账号？<a onclick="showRegisterForm()">立即注册</a></div>
+    </div>
+    <div id="registerFormArea" style="display:none">
+      <div class="form-group"><label>用户名 *</label><input type="text" id="regUsername" placeholder="输入用户名" autocomplete="off"></div>
+      <div class="form-group"><label>密码 *</label><input type="password" id="regPassword" placeholder="至少6位密码" autocomplete="new-password"></div>
+      <div class="form-group"><label>确认密码 *</label><input type="password" id="regPassword2" placeholder="再次输入密码" autocomplete="new-password"></div>
+      <div class="form-group"><label>手机号</label><div style="display:flex;gap:6px;align-items:center"><input type="text" id="regPhone" placeholder="选填" autocomplete="off" style="flex:1"><button class="btn btn-ghost" style="white-space:nowrap;padding:6px 10px;font-size:11px;display:none" id="regSendSmsBtn" onclick="regSendSmsCode()">发送验证码</button></div><div id="regPhoneHint" style="font-size:10px;color:var(--red);margin-top:2px;display:none"></div></div>
+      <div class="form-group" id="regSmsCodeGroup" style="display:none"><label>短信验证码</label><input type="text" id="regSmsCode" placeholder="输入收到的验证码" maxlength="6"></div>
+      <div class="form-group"><label>邮箱</label><div style="display:flex;gap:6px;align-items:center"><input type="email" id="regEmail" placeholder="选填" autocomplete="off" style="flex:1"><button class="btn btn-ghost" style="white-space:nowrap;padding:6px 10px;font-size:11px;display:none" id="regSendEmailBtn" onclick="regSendEmailCode()">发送验证码</button></div><div id="regEmailHint" style="font-size:10px;color:var(--red);margin-top:2px;display:none"></div></div>
+      <div class="form-group" id="regEmailCodeGroup" style="display:none"><label>邮箱验证码</label><input type="text" id="regEmailCode" placeholder="输入收到的验证码" maxlength="6"></div>
+      <div class="slider-captcha" id="regSliderCaptcha">
+        <div class="slider-track" id="regSliderTrack">
+          <div class="slider-track-fill" id="regSliderFill"></div>
+          <div class="slider-track-text" id="regSliderText">👉 拖动滑块验证</div>
+          <div class="slider-thumb" id="regSliderThumb">▶</div>
+        </div>
+      </div>
+      <button class="login-btn" id="regBtn" onclick="doRegister()">注 册</button>
+      <div class="login-error" id="regError"></div>
+      <div class="login-switch">已有账号？<a onclick="showLoginForm()">返回登录</a></div>
+    </div>
   </div>
 </div>
 <div class="app">
@@ -490,7 +560,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
         <div class="section-head"><span class="icon">⚡</span><span class="label">快捷查询</span><button class="btn-icon" onclick="openSaveQuickQueryModal()" title="保存当前配置">＋</button></div>
         <div class="section-body"><div id="quickQueryList" class="quick-query-list"><div class="no-data-hint">查询后可保存为快捷查询</div></div></div>
       </div>
-      <div class="section" id="datasourceSection">
+      <div class="section" id="datasourceSection" style="display:none">
         <div class="section-head"><span class="icon">🗄</span><span class="label" id="datasourceLabel">数据源</span><button class="btn-icon" onclick="openDbModal()" title="新建连接">＋</button><button class="btn-icon" onclick="openDbListModal()" title="管理连接">⚙</button></div>
         <div class="section-body">
           <div class="cfg-row"><label>连接</label><select class="sel" id="connSelect"><option value="">选择连接...</option></select></div>
@@ -570,6 +640,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div class="user-info" id="userInfoArea" style="display:none">
         <div class="user-avatar" id="userAvatar"></div>
         <span class="user-name" id="userDisplayName"></span>
+        <button class="profile-btn" onclick="openProfileModal()">个人中心</button>
         <button class="user-logout-btn" onclick="doLogout()">退出</button>
       </div>
     </div>
@@ -645,7 +716,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div style="flex:1.2;display:flex;flex-direction:column" id="scriptEditorPanel">
         <div class="form-group"><label>脚本名称</label><input type="text" id="scriptNameInput" placeholder="输入脚本名称"></div>
         <div class="form-group" style="flex:1;display:flex;flex-direction:column"><label>SQL 语句</label><textarea id="scriptSqlInput" style="flex:1;min-height:200px" placeholder="输入 SQL 查询语句...&#10;&#10;内置参数: {{dimension}} {{date_format}} {{start_date}} {{end_date}} {{year}} {{month}} {{day}}&#10;自定义参数: {{my_param}}  ← 自动生成输入框"></textarea></div>
-        <div class="form-group"><label>默认数据源</label><select id="scriptConnInput"><option value="">无</option></select></div>
+        <div class="form-group"><label>关联数据源（可多选）</label><div class="script-auth-grid" id="scriptConnGrid"></div></div>
         <div style="display:flex;gap:6px;justify-content:flex-end">
           <button class="btn btn-ghost" onclick="clearScriptEditor()">清空</button>
           <button class="btn btn-danger" id="btnDeleteScript" onclick="deleteScriptInModal()" style="display:none">删除</button>
@@ -720,8 +791,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div class="form-group"><label>用户名</label><input type="text" id="ufUsername" placeholder="输入用户名"></div>
       <div class="form-group" id="ufPasswordGroup"><label>密码</label><input type="password" id="ufPassword" placeholder="输入密码"></div>
       <div class="form-group"><label>显示名</label><input type="text" id="ufDisplayName" placeholder="输入显示名"></div>
+      <div class="form-group"><label>手机号</label><input type="text" id="ufPhone" placeholder="输入手机号"></div>
+      <div class="form-group"><label>邮箱</label><input type="email" id="ufEmail" placeholder="输入邮箱"></div>
       <div class="form-group"><label>是否超管</label><label class="ssh-toggle"><input type="checkbox" id="ufIsSuperAdmin"><div class="toggle-track"></div><span>超管拥有所有权限</span></label></div>
       <div class="form-group"><label>角色（按住Ctrl多选）</label><select id="ufRole" multiple style="height:80px"></select></div>
+      <div class="form-group"><label>授权脚本</label><div class="script-auth-grid" id="ufScriptAuthGrid"></div></div>
       <div class="form-group"><label>是否启用</label><label class="ssh-toggle"><input type="checkbox" id="ufEnabled" checked><div class="toggle-track"></div><span>启用</span></label></div>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closeUserFormModal()">取消</button><button class="btn btn-primary" onclick="saveUserForm()">保存</button></div>
@@ -741,6 +815,43 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </div>
 
 <div class="toast-container" id="toastContainer"></div>
+
+<div class="modal-overlay" id="profileModal">
+  <div class="modal modal-sm">
+    <div class="modal-head"><h2>👤 个人中心</h2><button class="modal-close" onclick="closeProfileModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="um-tabs" id="profileTabs">
+        <div class="um-tab active" onclick="switchProfileTab('info',this)">基本信息</div>
+        <div class="um-tab" onclick="switchProfileTab('password',this)">修改密码</div>
+      </div>
+      <div class="um-panel active" id="profileInfoPanel">
+        <div class="form-group"><label>用户名</label><input type="text" id="pfUsername" disabled style="opacity:.6"></div>
+        <div class="form-group"><label>显示名</label><input type="text" id="pfDisplayName" placeholder="输入显示名"></div>
+        <div class="form-group"><label>手机号</label><div style="display:flex;gap:6px;align-items:center"><input type="text" id="pfPhone" placeholder="输入手机号" style="flex:1"><button class="btn btn-ghost" style="white-space:nowrap;padding:6px 10px;font-size:11px;display:none" id="pfSendSmsBtn" onclick="sendSmsCode()">发送验证码</button><button class="btn btn-ghost" style="white-space:nowrap;padding:6px 10px;font-size:11px" id="pfUpdatePhoneBtn" onclick="startEditPhone()">更新</button></div><div id="pfPhoneHint" style="font-size:10px;color:var(--red);margin-top:2px;display:none"></div></div>
+        <div class="form-group" id="pfSmsCodeGroup" style="display:none"><label>短信验证码</label><input type="text" id="pfSmsCode" placeholder="输入收到的验证码" maxlength="6"></div>
+        <div class="form-group"><label>邮箱</label><div style="display:flex;gap:6px;align-items:center"><input type="email" id="pfEmail" placeholder="输入邮箱" style="flex:1"><button class="btn btn-ghost" style="white-space:nowrap;padding:6px 10px;font-size:11px;display:none" id="pfSendEmailBtn" onclick="sendEmailCode()">发送验证码</button><button class="btn btn-ghost" style="white-space:nowrap;padding:6px 10px;font-size:11px" id="pfUpdateEmailBtn" onclick="startEditEmail()">更新</button></div><div id="pfEmailHint" style="font-size:10px;color:var(--red);margin-top:2px;display:none"></div></div>
+        <div class="form-group" id="pfEmailCodeGroup" style="display:none"><label>邮箱验证码</label><input type="text" id="pfEmailCode" placeholder="输入收到的验证码" maxlength="6"></div>
+      </div>
+      <div class="um-panel" id="profilePasswordPanel">
+        <div class="form-group"><label>旧密码</label><input type="password" id="pfOldPassword" placeholder="输入旧密码"></div>
+        <div class="form-group"><label>新密码</label><input type="password" id="pfNewPassword" placeholder="至少6位新密码"></div>
+        <div class="form-group"><label>确认新密码</label><input type="password" id="pfNewPassword2" placeholder="再次输入新密码"></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeProfileModal()">取消</button><button class="btn btn-primary" onclick="saveProfile()">保存</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="scriptAuthModal">
+  <div class="modal modal-sm">
+    <div class="modal-head"><h2 id="scriptAuthTitle">📝 脚本授权</h2><button class="modal-close" onclick="closeScriptAuthModal()">✕</button></div>
+    <div class="modal-body">
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px">选择该用户可以使用的查询脚本：</div>
+      <div class="script-auth-grid" id="scriptAuthGrid"></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeScriptAuthModal()">取消</button><button class="btn btn-primary" onclick="saveScriptAuth()">保存</button></div>
+  </div>
+</div>
 
 <div class="modal-overlay" id="settingsModal">
   <div class="modal modal-sm">
@@ -766,6 +877,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div class="form-group"><label>缓存过期时间（秒）</label><input type="number" id="cfgCacheTtl" placeholder="3600" min="60"></div>
       <div class="form-group"><label>会话超时时间（分钟）</label><input type="number" id="cfgSessionTimeout" placeholder="30" min="1"></div>
       <div id="redisStatus" style="font-size:11px;color:var(--text-dim);padding:6px 10px;background:var(--glass);border-radius:6px"></div>
+
+      <div style="font-size:13px;font-weight:700;color:var(--accent3);margin:14px 0 10px;display:flex;align-items:center;gap:6px"><span style="font-size:16px">🎨</span> 加载动画</div>
+      <div id="loadingStyleGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px"></div>
+      <div id="loadingPreview" style="position:relative;height:80px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center"></div>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closeSettingsModal()">取消</button><button class="btn btn-primary" onclick="saveSettings()">保存并重连</button></div>
   </div>
@@ -898,49 +1013,123 @@ let _drillLock=false;
 
 let _gridTransitionTimer=null;
 
-function startGridTransition(){
-  const grid=document.getElementById('chartGrid');
-  if(!grid)return;
-  if(_gridTransitionTimer){clearTimeout(_gridTransitionTimer);_gridTransitionTimer=null}
-  grid.classList.remove('fading-in');
-  const hasContent=grid.querySelector('.chart-card-body')||grid.querySelector('.chart-card');
-  if(hasContent){
-    grid.classList.add('fading-out');
-    _gridTransitionTimer=setTimeout(()=>{
-      _gridTransitionTimer=null;
-      const old=grid.querySelector('.grid-loading-overlay');if(old)old.remove();
-      const ov=document.createElement('div');ov.className='grid-loading-overlay';
-      ov.innerHTML='<div class="pulse-ring"></div><div class="pulse-ring"></div><div class="pulse-ring"></div><div class="scan-line"></div>';
-      const colors=['var(--accent)','var(--accent2)','var(--accent3)','var(--chart-c1)','var(--chart-c4)'];
-      for(let i=0;i<5;i++){
-        const dot=document.createElement('div');dot.className='orbit-dot';
-        const angle=i*72;
-        dot.style.setProperty('--start-angle',angle+'deg');
-        dot.style.setProperty('--orbit-r',(28+i*6)+'px');
-        dot.style.setProperty('--orbit-dur',(2.5+i*0.4)+'s');
-        dot.style.setProperty('--dot-color',colors[i%colors.length]);
-        dot.style.background=colors[i%colors.length];
-        ov.appendChild(dot);
+let _loadingStyle='orbit';
+const LOADING_STYLES=[
+  {id:'orbit',name:'星轨环绕',desc:'脉冲光环 + 轨道粒子 + 扫描线'},
+  {id:'wave',name:'声波律动',desc:'跳动的频谱柱状波'},
+  {id:'dna',name:'DNA 双螺旋',desc:'双链螺旋旋转结构'},
+  {id:'vortex',name:'量子漩涡',desc:'多层旋转光环漩涡'},
+  {id:'cyber',name:'赛博故障',desc:'故障风文字 + 扫描线'},
+  {id:'helix',name:'粒子螺旋',desc:'3D 螺旋粒子轨迹'},
+];
+
+function buildLoadingOverlay(style){
+  const ov=document.createElement('div');ov.className='grid-loading-overlay';
+  const colors=['var(--accent)','var(--accent2)','var(--accent3)','var(--chart-c1)','var(--chart-c4)'];
+  const s=style||_loadingStyle;
+  if(s==='wave'){
+    const wrap=document.createElement('div');wrap.style.cssText='display:flex;align-items:center;gap:3px;height:60px';
+    for(let i=0;i<20;i++){
+      const bar=document.createElement('div');bar.className='wave-bar';
+      const h=20+Math.random()*40;
+      bar.style.height=h+'px';
+      bar.style.background=colors[i%colors.length];
+      bar.style.setProperty('--w-min',(0.2+Math.random()*0.3).toFixed(2));
+      bar.style.setProperty('--w-max',(0.8+Math.random()*0.2).toFixed(2));
+      bar.style.setProperty('--w-dur',(0.6+Math.random()*0.8).toFixed(2)+'s');
+      bar.style.animationDelay=(i*0.05)+'s';
+      wrap.appendChild(bar);
+    }
+    ov.appendChild(wrap);
+  }else if(s==='dna'){
+    const wrap=document.createElement('div');wrap.style.cssText='position:relative;width:60px;height:120px';
+    for(let i=0;i<12;i++){
+      const dot1=document.createElement('div');dot1.className='dna-dot';
+      dot1.style.background=colors[0];dot1.style.left='10px';
+      dot1.style.top=(i*10)+'px';
+      dot1.style.setProperty('--d-angle',(i*30)+'deg');
+      dot1.style.setProperty('--d-offset',15);
+      dot1.style.setProperty('--d-dur','3s');
+      dot1.style.animationDelay=(i*0.15)+'s';
+      wrap.appendChild(dot1);
+      const dot2=document.createElement('div');dot2.className='dna-dot';
+      dot2.style.background=colors[1];dot2.style.right='10px';dot2.style.left='auto';
+      dot2.style.top=(i*10)+'px';
+      dot2.style.setProperty('--d-angle',(i*30+180)+'deg');
+      dot2.style.setProperty('--d-offset',15);
+      dot2.style.setProperty('--d-dur','3s');
+      dot2.style.animationDelay=(i*0.15)+'s';
+      wrap.appendChild(dot2);
+      if(i%3===1){
+        const line=document.createElement('div');line.className='dna-line';
+        line.style.left='15px';line.style.top=(i*10+3)+'px';
+        line.style.height='1px';line.style.width='30px';
+        line.style.setProperty('--d-angle',(i*30)+'deg');
+        line.style.setProperty('--d-offset',0);
+        line.style.setProperty('--d-dur','3s');
+        line.style.setProperty('--d-color',colors[2]);
+        line.style.animationDelay=(i*0.15)+'s';
+        wrap.appendChild(line);
       }
-      for(let i=0;i<16;i++){
-        const p=document.createElement('div');p.className='particle';
-        const angle=Math.random()*Math.PI*2;
-        const dist=40+Math.random()*80;
-        p.style.setProperty('--dx',Math.cos(angle)*dist+'px');
-        p.style.setProperty('--dy',Math.sin(angle)*dist+'px');
-        p.style.setProperty('--p-size',(3+Math.random()*4)+'px');
-        p.style.setProperty('--p-dur',(1+Math.random()*1.5)+'s');
-        p.style.setProperty('--p-color',colors[i%colors.length]);
-        p.style.left='50%';p.style.top='50%';
-        p.style.animationDelay=(Math.random()*0.8)+'s';
-        ov.appendChild(p);
-      }
-      grid.appendChild(ov);
-    },350);
+    }
+    ov.appendChild(wrap);
+  }else if(s==='vortex'){
+    const wrap=document.createElement('div');wrap.style.cssText='position:relative;width:120px;height:120px';
+    for(let i=0;i<5;i++){
+      const ring=document.createElement('div');ring.className='vortex-ring';
+      const size=30+i*18;
+      ring.style.width=size+'px';ring.style.height=size+'px';
+      ring.style.left=(60-size/2)+'px';ring.style.top=(60-size/2)+'px';
+      ring.style.setProperty('--v-color',colors[i%colors.length]);
+      ring.style.setProperty('--v-start',(i*72)+'deg');
+      ring.style.setProperty('--v-s',(0.6+i*0.08).toFixed(2));
+      ring.style.setProperty('--v-o',(0.8-i*0.1).toFixed(2));
+      ring.style.setProperty('--v-dur',(2+i*0.5).toFixed(1)+'s');
+      ring.style.animationDelay=(i*0.2)+'s';
+      wrap.appendChild(ring);
+    }
+    const core=document.createElement('div');core.className='vortex-core';
+    core.style.background=colors[0];core.style.boxShadow='0 0 15px '+colors[0];
+    core.style.position='absolute';core.style.left='55px';core.style.top='55px';
+    wrap.appendChild(core);
+    ov.appendChild(wrap);
+  }else if(s==='cyber'){
+    const wrap=document.createElement('div');wrap.style.cssText='position:relative;width:200px;height:80px;display:flex;align-items:center;justify-content:center';
+    const txt=document.createElement('div');txt.className='cyber-block';
+    txt.style.color=colors[0];txt.textContent='LOADING';
+    txt.style.textShadow='2px 0 '+colors[1]+', -2px 0 '+colors[2];
+    wrap.appendChild(txt);
+    const scan=document.createElement('div');scan.className='cyber-scan';
+    wrap.appendChild(scan);
+    const corners=['top:0;left:0;border-top-width:2px;border-left-width:2px','top:0;right:0;border-top-width:2px;border-right-width:2px','bottom:0;left:0;border-bottom-width:2px;border-left-width:2px','bottom:0;right:0;border-bottom-width:2px;border-right-width:2px'];
+    corners.forEach((c,i)=>{
+      const corner=document.createElement('div');corner.className='cyber-corner';
+      corner.style.cssText=c;corner.style.borderColor=colors[i%colors.length];
+      corner.style.animationDelay=(i*0.3)+'s';
+      wrap.appendChild(corner);
+    });
+    ov.appendChild(wrap);
+  }else if(s==='helix'){
+    const wrap=document.createElement('div');wrap.style.cssText='position:relative;width:100px;height:100px;perspective:200px';
+    for(let i=0;i<16;i++){
+      const dot=document.createElement('div');dot.className='helix-dot';
+      const angle=i*(360/16);
+      dot.style.background=colors[i%colors.length];
+      dot.style.boxShadow='0 0 6px '+colors[i%colors.length];
+      dot.style.setProperty('--h-angle',angle+'deg');
+      dot.style.setProperty('--h-r',(20+i%3*10)+'px');
+      dot.style.setProperty('--h-s1',i%2===0?'1':'.4');
+      dot.style.setProperty('--h-s2',i%2===0?'.4':'1');
+      dot.style.setProperty('--h-o1',i%2===0?'.9':'.3');
+      dot.style.setProperty('--h-o2',i%2===0?'.3':'.9');
+      dot.style.setProperty('--h-dur',(2+i%3*0.5).toFixed(1)+'s');
+      dot.style.animationDelay=(i*0.1)+'s';
+      dot.style.left='50px';dot.style.top='50px';
+      wrap.appendChild(dot);
+    }
+    ov.appendChild(wrap);
   }else{
-    const ov=document.createElement('div');ov.className='grid-loading-overlay';
     ov.innerHTML='<div class="pulse-ring"></div><div class="pulse-ring"></div><div class="pulse-ring"></div><div class="scan-line"></div>';
-    const colors=['var(--accent)','var(--accent2)','var(--accent3)','var(--chart-c1)','var(--chart-c4)'];
     for(let i=0;i<5;i++){
       const dot=document.createElement('div');dot.className='orbit-dot';
       const angle=i*72;
@@ -951,7 +1140,39 @@ function startGridTransition(){
       dot.style.background=colors[i%colors.length];
       ov.appendChild(dot);
     }
-    grid.appendChild(ov);
+    for(let i=0;i<16;i++){
+      const p=document.createElement('div');p.className='particle';
+      const a=Math.random()*Math.PI*2;const dist=40+Math.random()*80;
+      p.style.setProperty('--dx',Math.cos(a)*dist+'px');
+      p.style.setProperty('--dy',Math.sin(a)*dist+'px');
+      p.style.setProperty('--p-size',(3+Math.random()*4)+'px');
+      p.style.setProperty('--p-dur',(1+Math.random()*1.5)+'s');
+      p.style.setProperty('--p-color',colors[i%colors.length]);
+      p.style.left='50%';p.style.top='50%';
+      p.style.animationDelay=(Math.random()*0.8)+'s';
+      ov.appendChild(p);
+    }
+  }
+  return ov;
+}
+
+function startGridTransition(){
+  const grid=document.getElementById('chartGrid');
+  if(!grid)return;
+  if(_gridTransitionTimer){clearTimeout(_gridTransitionTimer);_gridTransitionTimer=null}
+  grid.classList.remove('fading-in');
+  const hasContent=grid.querySelector('.chart-card-body')||grid.querySelector('.chart-card');
+  if(hasContent){
+    grid.classList.add('fading-out');
+    _gridTransitionTimer=setTimeout(()=>{
+      _gridTransitionTimer=null;
+      grid.classList.remove('fading-out');
+      grid.innerHTML='';
+      grid.appendChild(buildLoadingOverlay());
+    },350);
+  }else{
+    grid.innerHTML='';
+    grid.appendChild(buildLoadingOverlay());
   }
 }
 
@@ -991,6 +1212,8 @@ async function openSettingsModal(){
       document.getElementById('cfgNacosRedisDataId').value=c.nacos.redis_data_id||'';
       document.getElementById('cfgCacheTtl').value=c.cache_ttl||3600;
       document.getElementById('cfgSessionTimeout').value=c.session_timeout||30;
+      _loadingStyle=c.loading_style||'orbit';
+      renderLoadingStyleGrid();
     }
   }catch(e){}
   try{
@@ -1005,6 +1228,27 @@ async function openSettingsModal(){
 
 function closeSettingsModal(){
   document.getElementById('settingsModal').classList.remove('show');
+  const pv=document.getElementById('loadingPreview');if(pv)pv.innerHTML='';
+}
+
+function renderLoadingStyleGrid(){
+  const grid=document.getElementById('loadingStyleGrid');if(!grid)return;
+  grid.innerHTML=LOADING_STYLES.map(s=>`<div class="loading-style-card${s.id===_loadingStyle?' active':''}" data-style="${s.id}" onclick="selectLoadingStyle('${s.id}')" style="padding:6px 8px;background:var(--glass);border:1px solid var(--border);border-radius:6px;cursor:pointer;text-align:center;transition:all .2s;${s.id===_loadingStyle?'border-color:var(--accent);background:var(--glass-hover)':''}"><div style="font-size:11px;font-weight:600;color:${s.id===_loadingStyle?'var(--accent)':'var(--text)'}">${s.name}</div><div style="font-size:9px;color:var(--text-dim);margin-top:2px">${s.desc}</div></div>`).join('');
+  updateLoadingPreview();
+}
+
+function selectLoadingStyle(id){
+  _loadingStyle=id;
+  renderLoadingStyleGrid();
+}
+
+function updateLoadingPreview(){
+  const pv=document.getElementById('loadingPreview');if(!pv)return;
+  pv.innerHTML='';
+  const ov=buildLoadingOverlay(_loadingStyle);
+  ov.style.position='relative';ov.style.inset='auto';
+  ov.style.width='100%';ov.style.height='100%';
+  pv.appendChild(ov);
 }
 
 async function saveSettings(){
@@ -1020,6 +1264,7 @@ async function saveSettings(){
     },
     cache_ttl:parseInt(document.getElementById('cfgCacheTtl').value)||3600,
     session_timeout:parseInt(document.getElementById('cfgSessionTimeout').value)||30,
+    loading_style:_loadingStyle,
   };
   try{
     const r=await api('/api/app-config',{method:'POST',body});
@@ -1343,12 +1588,9 @@ function getCustomParams(){const p={};document.querySelectorAll('#paramsContaine
 function getMergeNames(){return Array.from(document.querySelectorAll('#mergeGrid input:checked')).map(el=>el.value)}
 function currentScriptSql(){const name=document.getElementById('scriptSelect').value;if(!name)return '';const s=scripts.find(s=>s.name===name);return s?s.sql:''}
 
-async function loadConnections(){connections=await api('/api/connections');renderConnSelect();renderMergeGrid()}
-function renderConnSelect(){const sel=document.getElementById('connSelect'),cur=sel.value;const isDs=hasPermission('datasource_manage');const ph=isDs?'选择连接...':'选择通道...';sel.innerHTML=`<option value="">${ph}</option>`+connections.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');if(cur)sel.value=cur;const connLabel=sel.parentElement.querySelector('label');if(connLabel)connLabel.textContent=isDs?'连接':'通道';const mergeLabel=document.getElementById('mergeLabel');if(mergeLabel)mergeLabel.textContent=isDs?'合并数据源':'合并通道'}
-function renderMergeGrid(){
-  document.getElementById('mergeGrid').innerHTML=connections.map(c=>`<label class="merge-chip"><input type="checkbox" value="${c.name}" onchange="this.parentElement.classList.toggle('checked');onMergeChanged()">${c.name}</label>`).join('');
-  onMergeChanged();
-}
+async function loadConnections(){connections=await api('/api/connections');const scriptName=document.getElementById('scriptSelect').value;if(scriptName){const script=scripts.find(s=>s.name===scriptName);const scriptConns=script?[script.conn_name,...(script.merge_conn_names||[])].filter(Boolean):null;renderConnSelect(scriptConns)}else{renderConnSelect()}}
+function renderConnSelect(scriptConns){const sel=document.getElementById('connSelect'),cur=sel.value;const isDs=hasPermission('datasource_manage');const ph=isDs?'选择连接...':'选择通道...';let conns=connections;if(scriptConns&&scriptConns.length){conns=connections.filter(c=>scriptConns.includes(c.name))}sel.innerHTML=`<option value="">${ph}</option>`+conns.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');if(cur&&conns.find(c=>c.name===cur))sel.value=cur;const connLabel=sel.parentElement.querySelector('label');if(connLabel)connLabel.textContent=isDs?'连接':'通道';const mergeLabel=document.getElementById('mergeLabel');if(mergeLabel)mergeLabel.textContent=isDs?'合并数据源':'合并通道';renderMergeGrid(scriptConns)}
+function renderMergeGrid(scriptConns){const grid=document.getElementById('mergeGrid');let conns=connections;if(scriptConns&&scriptConns.length){conns=connections.filter(c=>scriptConns.includes(c.name))}grid.innerHTML=conns.map(c=>`<label class="merge-chip"><input type="checkbox" value="${c.name}" onchange="this.parentElement.classList.toggle('checked');onMergeChanged()">${c.name}</label>`).join('');const sel=document.getElementById('connSelect');if(sel.value){const cb=grid.querySelector(`input[value="${sel.value}"]`);if(cb){cb.checked=false;cb.parentElement.style.display='none'}}onMergeChanged()}
 function onMergeChanged(){
   const names=getMergeNames();
   document.getElementById('mergeOptions').style.display=names.length>1?'':'none';
@@ -1447,8 +1689,9 @@ function applySshTemplate(){
 }
 
 async function loadScripts(){scripts=await api('/api/scripts');const sel=document.getElementById('scriptSelect'),cur=sel.value;const isSc=hasPermission('script_manage');const ph=isSc?'— 选择脚本 —':'— 选择查询 —';sel.innerHTML=`<option value="">${ph}</option>`+scripts.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');if(cur&&scripts.find(s=>s.name===cur))sel.value=cur;renderScriptConnSelect()}
-function renderScriptConnSelect(){const sel=document.getElementById('scriptConnInput');sel.innerHTML='<option value="">无</option>'+connections.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}
-async function onScriptSelected(){const name=document.getElementById('scriptSelect').value;if(!name){document.getElementById('paramsSection').style.display='none';return}const script=scripts.find(s=>s.name===name);if(!script)return;currentScriptName=name;lastQueryResult=null;if(script.conn_name){const sel=document.getElementById('connSelect');if([...sel.options].some(o=>o.value===script.conn_name))sel.value=script.conn_name}detectParams();await loadScriptColumns();buildPreQueryCfgCards();buildMergeKeySelect();buildHideFieldsGrid()}
+function renderScriptConnSelect(selectedNames){const grid=document.getElementById('scriptConnGrid');const names=selectedNames||[];grid.innerHTML=connections.map(c=>{const checked=names.includes(c.name);return`<label class="script-auth-item${checked?' checked':''}"><input type="checkbox" value="${c.name}"${checked?' checked':''}><span>${c.name}</span></label>`}).join('');grid.querySelectorAll('.script-auth-item').forEach(item=>{item.addEventListener('click',()=>{const cb=item.querySelector('input');cb.checked=!cb.checked;item.classList.toggle('checked',cb.checked)})})}
+function getScriptConnSelected(){return Array.from(document.querySelectorAll('#scriptConnGrid input:checked')).map(cb=>cb.value)}
+async function onScriptSelected(){const name=document.getElementById('scriptSelect').value;const dsSection=document.getElementById('datasourceSection');if(!name){dsSection.style.display='none';document.getElementById('paramsSection').style.display='none';document.getElementById('connSelect').value='';document.getElementById('mergeGrid').innerHTML='';return}const script=scripts.find(s=>s.name===name);if(!script)return;currentScriptName=name;lastQueryResult=null;const scriptConns=[script.conn_name,...(script.merge_conn_names||[])].filter(Boolean);dsSection.style.display='';renderConnSelect(scriptConns);if(script.conn_name){const sel=document.getElementById('connSelect');if([...sel.options].some(o=>o.value===script.conn_name))sel.value=script.conn_name}detectParams();await loadScriptColumns();buildPreQueryCfgCards();buildMergeKeySelect();buildHideFieldsGrid()}
 
 async function loadScriptColumns(){
   const sql=currentScriptSql();if(!sql){scriptColumnsCache[currentScriptName]=[];return}
@@ -1480,13 +1723,13 @@ function buildPreQueryCfgCards(){
   document.getElementById('btnApplyLayout').disabled=!cols.length;
 }
 
-function openScriptManager(){editingScriptName=null;renderScriptListInModal();clearScriptEditor();document.getElementById('scriptModal').classList.add('show');renderScriptConnSelect()}
+function openScriptManager(){editingScriptName=null;renderScriptListInModal();clearScriptEditor();document.getElementById('scriptModal').classList.add('show');renderScriptConnSelect([])}
 function closeScriptManager(){document.getElementById('scriptModal').classList.remove('show')}
-function renderScriptListInModal(){const el=document.getElementById('scriptListInModal');const canEdit=hasPermission('script_manage');if(!scripts.length){el.innerHTML='<div class="no-data-hint">暂无脚本，点击新建</div>';return}el.innerHTML=scripts.map(s=>{const conn=s.conn_name?`<span class="si-conn">${s.conn_name}</span>`:'';const actions=canEdit?`<div class="si-actions"><button onclick="event.stopPropagation();selectScriptInModal('${s.name}')" title="编辑">✎</button><button class="del" onclick="event.stopPropagation();deleteScriptInModal('${s.name}')" title="删除">✕</button></div>`:'';return`<div class="script-item" onclick="selectScriptInModal('${s.name}')"><span class="si-name">${s.name}</span>${conn}${actions}</div>`}).join('')}
-function selectScriptInModal(name){const s=scripts.find(s=>s.name===name);if(!s)return;editingScriptName=name;document.getElementById('scriptNameInput').value=s.name;document.getElementById('scriptSqlInput').value=s.sql;document.getElementById('scriptConnInput').value=s.conn_name||'';document.getElementById('btnDeleteScript').style.display=hasPermission('script_manage')?'':'none'}
-function clearScriptEditor(){editingScriptName=null;document.getElementById('scriptNameInput').value='';document.getElementById('scriptSqlInput').value='';document.getElementById('scriptConnInput').value='';document.getElementById('btnDeleteScript').style.display='none'}
+function renderScriptListInModal(){const el=document.getElementById('scriptListInModal');const canEdit=hasPermission('script_manage');if(!scripts.length){el.innerHTML='<div class="no-data-hint">暂无脚本，点击新建</div>';return}el.innerHTML=scripts.map(s=>{const allConns=[s.conn_name,...(s.merge_conn_names||[])].filter(Boolean);const conn=allConns.length?allConns.map(n=>`<span class="si-conn">${n}</span>`).join(''):'';const actions=canEdit?`<div class="si-actions"><button onclick="event.stopPropagation();selectScriptInModal('${s.name}')" title="编辑">✎</button><button class="del" onclick="event.stopPropagation();deleteScriptInModal('${s.name}')" title="删除">✕</button></div>`:'';return`<div class="script-item" onclick="selectScriptInModal('${s.name}')"><span class="si-name">${s.name}</span>${conn}${actions}</div>`}).join('')}
+function selectScriptInModal(name){const s=scripts.find(s=>s.name===name);if(!s)return;editingScriptName=name;document.getElementById('scriptNameInput').value=s.name;document.getElementById('scriptSqlInput').value=s.sql;const connNames=[s.conn_name,...(s.merge_conn_names||[])].filter(Boolean);renderScriptConnSelect(connNames);document.getElementById('btnDeleteScript').style.display=hasPermission('script_manage')?'':'none'}
+function clearScriptEditor(){editingScriptName=null;document.getElementById('scriptNameInput').value='';document.getElementById('scriptSqlInput').value='';renderScriptConnSelect([]);document.getElementById('btnDeleteScript').style.display='none'}
 function newScriptInModal(){clearScriptEditor();document.getElementById('scriptNameInput').focus()}
-async function saveScriptInModal(){const name=document.getElementById('scriptNameInput').value.trim();const sql=document.getElementById('scriptSqlInput').value;const conn_name=document.getElementById('scriptConnInput').value;if(!name)return toast('请输入脚本名称','error');if(!sql.trim())return toast('请输入 SQL','error');const data={name,sql,chart_type:'line',conn_name,merge_conn_names:[]};try{const existing=scripts.find(s=>s.name===name);if(existing&&editingScriptName!==name){return toast('脚本名称已存在','error')}if(editingScriptName){await api(`/api/scripts/${encodeURIComponent(editingScriptName)}`,{method:'PUT',body:data});toast('脚本已更新','success')}else{await api('/api/scripts',{method:'POST',body:data});toast('脚本已创建','success')}editingScriptName=name;await loadScripts();renderScriptListInModal();document.getElementById('scriptSelect').value=name;currentScriptName=name;detectParams()}catch{}}
+async function saveScriptInModal(){const name=document.getElementById('scriptNameInput').value.trim();const sql=document.getElementById('scriptSqlInput').value;if(!name)return toast('请输入脚本名称','error');if(!sql.trim())return toast('请输入 SQL','error');const selectedConns=getScriptConnSelected();const conn_name=selectedConns[0]||'';const merge_conn_names=selectedConns.slice(1);const data={name,sql,chart_type:'line',conn_name,merge_conn_names};try{const existing=scripts.find(s=>s.name===name);if(existing&&editingScriptName!==name){return toast('脚本名称已存在','error')}if(editingScriptName){await api(`/api/scripts/${encodeURIComponent(editingScriptName)}`,{method:'PUT',body:data});toast('脚本已更新','success')}else{await api('/api/scripts',{method:'POST',body:data});toast('脚本已创建','success')}editingScriptName=name;await loadScripts();renderScriptListInModal();document.getElementById('scriptSelect').value=name;currentScriptName=name;detectParams()}catch{}}
 async function deleteScriptInModal(name){const n=name||editingScriptName;if(!n)return;if(!confirm(`删除脚本 '${n}'？`))return;try{await api(`/api/scripts/${encodeURIComponent(n)}`,{method:'DELETE'});toast('已删除','success');if(editingScriptName===n)clearScriptEditor();await loadScripts();renderScriptListInModal()}catch{}}
 
 function renderLayoutButtons(){
@@ -1676,7 +1919,8 @@ function renderMultiChart(result,configs){
   const grid=document.getElementById('chartGrid');
   grid.className=`chart-grid g${layoutCount}`;
   grid.classList.remove('fading-out');
-  Object.values(chartInstances).forEach(c=>c.dispose());chartInstances={};grid.innerHTML='';
+  Object.values(chartInstances).forEach(c=>c.dispose());chartInstances={};
+  grid.innerHTML='';
 
   if(!result.columns.length||!result.rows.length){
     grid.innerHTML='<div class="chart-card"><div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">暂无数据</div><div class="empty-hint">当前查询条件下没有返回数据，请调整时间范围或双击其他节点</div></div></div>';
@@ -2400,7 +2644,7 @@ async function saveQuickQuery(){
 async function applyQuickQuery(name,forceRefresh){
   const q=quickQueries.find(q=>q.name===name);if(!q)return;
   _lastAppliedQQName=name;
-  if(q.scriptName){const sel=document.getElementById('scriptSelect');if([...sel.options].some(o=>o.value===q.scriptName))sel.value=q.scriptName;currentScriptName=q.scriptName;await loadScriptColumns();detectParams()}
+  if(q.scriptName){const sel=document.getElementById('scriptSelect');if([...sel.options].some(o=>o.value===q.scriptName)){sel.value=q.scriptName;await onScriptSelected()}}
   if(q.connName){const sel=document.getElementById('connSelect');if([...sel.options].some(o=>o.value===q.connName))sel.value=q.connName}
   if(q.mergeNames){
     document.querySelectorAll('#mergeGrid input[type=checkbox]').forEach(cb=>{cb.checked=q.mergeNames.includes(cb.value);cb.parentElement.classList.toggle('checked',cb.checked)});
@@ -2470,28 +2714,35 @@ document.addEventListener('DOMContentLoaded',()=>{checkAuth()});
 let _sessionCheckTimer=null;
 function startSessionCheck(){stopSessionCheck();_sessionCheckTimer=setInterval(async()=>{if(!currentUser)return;try{const data=await api('/api/auth/me');if(!data.ok||!data.user){currentUser=null;currentPermissions=[];showLoginOverlay();toast('会话已过期，请重新登录','error');stopSessionCheck()}}catch(e){stopSessionCheck()}},60000)}
 function stopSessionCheck(){if(_sessionCheckTimer){clearInterval(_sessionCheckTimer);_sessionCheckTimer=null}}
-async function checkAuth(){try{const data=await api('/api/auth/me');if(data.ok&&data.user){currentUser=data.user;currentPermissions=data.permissions||[];hideLoginOverlay();updateUserInfo();applyPermissions();loadConnections();loadScripts();loadQuickQueries();startSessionCheck()}else{showLoginOverlay()}}catch(e){showLoginOverlay()}}
-function showLoginOverlay(){document.getElementById('loginOverlay').style.display='flex';document.getElementById('loginError').textContent=''}
+async function checkAuth(){try{const data=await api('/api/auth/me');if(data.ok&&data.user){currentUser=data.user;currentPermissions=data.permissions||[];hideLoginOverlay();updateUserInfo();applyPermissions();loadAppConfig();loadConnections();loadScripts();loadQuickQueries();startSessionCheck()}else{showLoginOverlay()}}catch(e){showLoginOverlay()}}
+function showLoginOverlay(){document.getElementById('loginOverlay').style.display='flex';document.getElementById('loginError').textContent='';showLoginForm();resetSlider()}
 function hideLoginOverlay(){document.getElementById('loginOverlay').style.display='none'}
-async function doLogin(){const username=document.getElementById('loginUsername').value.trim();const password=document.getElementById('loginPassword').value;if(!username||!password){document.getElementById('loginError').textContent='请输入用户名和密码';return}const btn=document.getElementById('loginBtn');btn.disabled=true;btn.textContent='登录中...';try{const data=await api('/api/auth/login',{method:'POST',body:{username,password}});if(data.ok){currentUser=data.user;currentPermissions=data.permissions||[];hideLoginOverlay();updateUserInfo();applyPermissions();loadConnections();loadScripts();loadQuickQueries();startSessionCheck()}else{document.getElementById('loginError').textContent=data.error||'登录失败'}}catch(e){document.getElementById('loginError').textContent=e.message||'登录失败'}finally{btn.disabled=false;btn.textContent='登 录'}}
-async function doLogout(){try{await api('/api/auth/logout',{method:'POST'})}catch{}currentUser=null;currentPermissions=[];stopSessionCheck();showLoginOverlay();document.getElementById('loginUsername').value='';document.getElementById('loginPassword').value=''}
+async function doLogin(){const username=document.getElementById('loginUsername').value.trim();const password=document.getElementById('loginPassword').value;if(!username||!password){document.getElementById('loginError').textContent='请输入用户名和密码';return}if(!_sliderVerified){document.getElementById('loginError').textContent='请先完成滑块验证';return}const btn=document.getElementById('loginBtn');btn.disabled=true;btn.textContent='登录中...';try{const data=await api('/api/auth/login',{method:'POST',body:{username,password}});if(data.ok){currentUser=data.user;currentPermissions=data.permissions||[];hideLoginOverlay();updateUserInfo();applyPermissions();loadAppConfig();loadConnections();loadScripts();loadQuickQueries();startSessionCheck()}else{document.getElementById('loginError').textContent=data.error||'登录失败';resetLoginSlider()}}catch(e){document.getElementById('loginError').textContent=e.message||'登录失败';resetLoginSlider()}finally{btn.disabled=false;btn.textContent='登 录'}}
+async function doLogout(){try{await api('/api/auth/logout',{method:'POST'})}catch{}currentUser=null;currentPermissions=[];stopSessionCheck();showLoginOverlay();document.getElementById('loginUsername').value='';document.getElementById('loginPassword').value='';resetSlider()}
 function updateUserInfo(){if(!currentUser)return;const area=document.getElementById('userInfoArea');area.style.display='flex';const name=currentUser.displayName||currentUser.username||'';document.getElementById('userDisplayName').textContent=name;document.getElementById('userAvatar').textContent=name.charAt(0).toUpperCase()}
+async function loadAppConfig(){try{const r=await api('/api/app-config');if(r.ok&&r.config)_loadingStyle=r.config.loading_style||'orbit'}catch{}}
 function hasPermission(perm){if(!currentUser)return false;if(currentUser.isSuperAdmin)return true;return currentPermissions.includes(perm)}
-function applyPermissions(){const permMap={'script_manage':['.section-head .btn-icon[onclick*="openScriptManager"]','#btnNewScript','#btnDeleteScript'],'datasource_manage':['.section-head .btn-icon[onclick*="openDbModal"]','.section-head .btn-icon[onclick*="openDbListModal"]'],'chart_layout':['.section-head .btn-icon[onclick*="openLayoutSettings"]'],'system_settings':['#btnSystemSettings'],'quick_query_manage':['.section-head .btn-icon[onclick*="openSaveQuickQueryModal"]'],'user_manage':['#btnUserManage'],'export_data':['.chart-save-btn[title*="导出"]','#fsSaveBtn[title*="导出"]'],'save_chart':['.chart-save-btn[title*="保存图片"]','#fsSaveBtn[title*="保存图片"]']};Object.entries(permMap).forEach(([perm,selectors])=>{const allowed=hasPermission(perm);selectors.forEach(sel=>{document.querySelectorAll(sel).forEach(el=>{el.style.display=allowed?'':'none'})})});const hasQQ=hasPermission('quick_query_manage');const hasDs=hasPermission('datasource_manage');const hasSc=hasPermission('script_manage');const qqSection=document.getElementById('quickQuerySection');if(qqSection)qqSection.style.display=hasQQ?'':'none';const dsLabel=document.getElementById('datasourceLabel');if(dsLabel)dsLabel.textContent=hasDs?'数据源':'通道';const scLabel=document.getElementById('scriptLabel');if(scLabel)scLabel.textContent=hasSc?'脚本':'查询选项';const mainHint=document.getElementById('mainEmptyHint');if(mainHint)mainHint.textContent=hasSc?(hasDs?'选择脚本与数据源，点击执行查询':'选择脚本与通道，点击执行查询'):(hasDs?'选择查询选项与数据源，点击执行查询':'选择查询选项与通道，点击执行查询');const cfgHint=document.getElementById('chartCfgHint');if(cfgHint)cfgHint.textContent=hasSc?'选择脚本后可预配置，或查询后自动填充':'选择查询后可预配置，或查询后自动填充';renderConnSelect()}
+function applyPermissions(){const permMap={'script_manage':['.section-head .btn-icon[onclick*="openScriptManager"]','#btnNewScript','#btnDeleteScript'],'datasource_manage':['.section-head .btn-icon[onclick*="openDbModal"]','.section-head .btn-icon[onclick*="openDbListModal"]'],'chart_layout':['.section-head .btn-icon[onclick*="openLayoutSettings"]'],'system_settings':['#btnSystemSettings'],'quick_query_manage':['.section-head .btn-icon[onclick*="openSaveQuickQueryModal"]'],'user_manage':['#btnUserManage'],'export_data':['.chart-save-btn[title*="导出"]','#fsSaveBtn[title*="导出"]'],'save_chart':['.chart-save-btn[title*="保存图片"]','#fsSaveBtn[title*="保存图片"]']};Object.entries(permMap).forEach(([perm,selectors])=>{const allowed=hasPermission(perm);selectors.forEach(sel=>{document.querySelectorAll(sel).forEach(el=>{el.style.display=allowed?'':'none'})})});const hasQQ=hasPermission('quick_query_manage');const hasDs=hasPermission('datasource_manage');const hasSc=hasPermission('script_manage');const qqSection=document.getElementById('quickQuerySection');if(qqSection)qqSection.style.display=hasQQ?'':'none';const dsLabel=document.getElementById('datasourceLabel');if(dsLabel)dsLabel.textContent=hasDs?'数据源':'通道';const scLabel=document.getElementById('scriptLabel');if(scLabel)scLabel.textContent=hasSc?'脚本':'查询选项';const mainHint=document.getElementById('mainEmptyHint');if(mainHint)mainHint.textContent=hasSc?'选择脚本后选择数据源，点击执行查询':'选择查询选项后选择通道，点击执行查询';const cfgHint=document.getElementById('chartCfgHint');if(cfgHint)cfgHint.textContent=hasSc?'选择脚本后可预配置，或查询后自动填充':'选择查询后可预配置，或查询后自动填充';const dsSection=document.getElementById('datasourceSection');if(dsSection)dsSection.style.display=document.getElementById('scriptSelect').value?'':'none';renderConnSelect()}
 document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
 document.getElementById('loginUsername').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginPassword').focus()});
+document.getElementById('regPassword2').addEventListener('keydown',e=>{if(e.key==='Enter')doRegister()});
 
 function switchUmTab(tab,el){document.querySelectorAll('.um-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.um-panel').forEach(p=>p.classList.remove('active'));el.classList.add('active');document.getElementById(tab==='users'?'umUsersPanel':'umRolesPanel').classList.add('active');if(tab==='users')renderUserFormRoleSelect()}
 async function openUserManageModal(){if(!hasPermission('user_manage'))return toast('权限不足','error');document.getElementById('userManageModal').classList.add('show');await loadUsersList();await loadRolesList();await loadPermissionsList();renderUserFormRoleSelect()}
 function closeUserManageModal(){document.getElementById('userManageModal').classList.remove('show')}
-async function loadUsersList(){try{const data=await api('/api/users');allUsersList=Array.isArray(data)?data:(data.users||[]);const tbody=document.getElementById('umUsersBody');if(!allUsersList.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text-dim)">暂无用户</td></tr>';return}tbody.innerHTML=allUsersList.map(u=>{const status=u.isActive!==false?'<span class="status-badge on">启用</span>':'<span class="status-badge off">禁用</span>';let roles='';if(u.isSuperAdmin){roles='<span style="color:var(--accent3);font-weight:600">超级管理员</span>'}else{const roleNames=(u.roles||[]).map(r=>r.name);roles=roleNames.length?roleNames.map(n=>`<span style="display:inline-block;padding:1px 6px;background:var(--glass);border-radius:3px;font-size:10px;margin:1px">${n}</span>`).join(''):'<span style="color:var(--text-dim)">—</span>'}return`<tr><td>${u.username}</td><td>${u.displayName||''}</td><td>${roles}</td><td>${status}</td><td><div class="um-actions"><button onclick="editUserForm(${u.id})">编辑</button><button class="del" onclick="deleteUser(${u.id})">删除</button></div></td></tr>`}).join('')}catch(e){toast('加载用户列表失败','error')}}
+async function loadUsersList(){try{const data=await api('/api/users');allUsersList=Array.isArray(data)?data:(data.users||[]);const tbody=document.getElementById('umUsersBody');if(!allUsersList.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text-dim)">暂无用户</td></tr>';return}tbody.innerHTML=allUsersList.map(u=>{const status=u.isActive!==false?'<span class="status-badge on">启用</span>':'<span class="status-badge off">禁用</span>';let roles='';if(u.isSuperAdmin){roles='<span style="color:var(--accent3);font-weight:600">超级管理员</span>'}else{const roleNames=(u.roles||[]).map(r=>r.name);roles=roleNames.length?roleNames.map(n=>`<span style="display:inline-block;padding:1px 6px;background:var(--glass);border-radius:3px;font-size:10px;margin:1px">${n}</span>`).join(''):'<span style="color:var(--text-dim)">—</span>'}const scriptCount=(u.authorizedScriptNames||[]).length;return`<tr><td>${u.username}</td><td>${u.displayName||''}</td><td>${roles}</td><td>${status}</td><td><div class="um-actions"><button onclick="editUserForm(${u.id})">编辑</button><button onclick="openScriptAuthModal(${u.id})">脚本</button><button class="del" onclick="deleteUser(${u.id})">删除</button></div></td></tr>`}).join('')}catch(e){toast('加载用户列表失败','error')}}
 async function loadRolesList(){try{const data=await api('/api/roles');allRolesList=Array.isArray(data)?data:(data.roles||[]);const tbody=document.getElementById('umRolesBody');if(!allRolesList.length){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--text-dim)">暂无角色</td></tr>';return}tbody.innerHTML=allRolesList.map(r=>{const perms=(r.permissions||[]).map(p=>`<span style="display:inline-block;padding:1px 5px;background:var(--glass);border-radius:3px;font-size:9px;margin:1px">${p.name||p}</span>`).join('');return`<tr><td>${r.name}</td><td>${r.description||''}</td><td>${perms||'—'}</td><td><div class="um-actions"><button onclick="editRoleForm(${r.id})">编辑</button><button class="del" onclick="deleteRole(${r.id})">删除</button></div></td></tr>`}).join('')}catch(e){toast('加载角色列表失败','error')}}
 async function loadPermissionsList(){try{const data=await api('/api/permissions');allPermissionsList=Array.isArray(data)?data:(data.permissions||[])}catch{}}
 function renderUserFormRoleSelect(){const sel=document.getElementById('ufRole');sel.innerHTML=allRolesList.map(r=>`<option value="${r.id}">${r.name}</option>`).join('')}
-function openUserFormModal(){editingUserId=null;document.getElementById('userFormTitle').textContent='新增用户';document.getElementById('ufUsername').value='';document.getElementById('ufPassword').value='';document.getElementById('ufDisplayName').value='';document.getElementById('ufIsSuperAdmin').checked=false;document.getElementById('ufRole').value='';document.getElementById('ufEnabled').checked=true;document.getElementById('ufPasswordGroup').style.display='';document.getElementById('userFormModal').classList.add('show')}
+let _allScriptsForAuth=[];
+function renderScriptAuthGrid(containerId,selectedNames){const grid=document.getElementById(containerId);grid.innerHTML=_allScriptsForAuth.map(s=>{const checked=selectedNames.includes(s.name);return`<label class="script-auth-item${checked?' checked':''}"><input type="checkbox" value="${s.name}"${checked?' checked':''}><span>${s.name}</span></label>`}).join('');grid.querySelectorAll('.script-auth-item').forEach(item=>{item.addEventListener('click',()=>{const cb=item.querySelector('input');cb.checked=!cb.checked;item.classList.toggle('checked',cb.checked)})})}
+function getScriptAuthSelected(containerId){return Array.from(document.querySelectorAll(`#${containerId} input:checked`)).map(cb=>cb.value)}
+
+function openUserFormModal(){editingUserId=null;document.getElementById('userFormTitle').textContent='新增用户';document.getElementById('ufUsername').value='';document.getElementById('ufPassword').value='';document.getElementById('ufDisplayName').value='';document.getElementById('ufPhone').value='';document.getElementById('ufEmail').value='';document.getElementById('ufIsSuperAdmin').checked=false;document.getElementById('ufRole').value='';document.getElementById('ufEnabled').checked=true;document.getElementById('ufPasswordGroup').style.display='';loadAllScriptsForAuth(()=>renderScriptAuthGrid('ufScriptAuthGrid',[]));document.getElementById('userFormModal').classList.add('show')}
 function closeUserFormModal(){document.getElementById('userFormModal').classList.remove('show')}
-function editUserForm(id){const u=allUsersList.find(u=>u.id===id);if(!u){toast('用户信息未找到','error');return}editingUserId=id;document.getElementById('userFormTitle').textContent='编辑用户';document.getElementById('ufUsername').value=u.username||'';document.getElementById('ufPassword').value='';document.getElementById('ufDisplayName').value=u.displayName||'';document.getElementById('ufIsSuperAdmin').checked=!!u.isSuperAdmin;renderUserFormRoleSelect();const userRoleIds=(u.roles||[]).map(r=>r.id);const sel=document.getElementById('ufRole');Array.from(sel.options).forEach(opt=>{opt.selected=userRoleIds.includes(parseInt(opt.value))});document.getElementById('ufEnabled').checked=u.isActive!==false;document.getElementById('ufPasswordGroup').style.display='';document.getElementById('userFormModal').classList.add('show')}
-async function saveUserForm(){const username=document.getElementById('ufUsername').value.trim();const password=document.getElementById('ufPassword').value;const displayName=document.getElementById('ufDisplayName').value.trim();const isSuperAdmin=document.getElementById('ufIsSuperAdmin').checked;const roleIds=Array.from(document.getElementById('ufRole').selectedOptions).map(opt=>parseInt(opt.value));const isActive=document.getElementById('ufEnabled').checked;if(!username){return toast('请输入用户名','error')}if(!editingUserId&&!password){return toast('请输入密码','error')}const body={username,displayName,isSuperAdmin,isActive,roleIds};if(password)body.password=password;try{if(editingUserId){await api(`/api/users/${editingUserId}`,{method:'PUT',body});toast('用户已更新','success')}else{await api('/api/users',{method:'POST',body});toast('用户已创建','success')}closeUserFormModal();await loadUsersList()}catch(e){toast('保存失败: '+e.message,'error')}}
+async function loadAllScriptsForAuth(cb){if(_allScriptsForAuth.length){cb();return}try{const data=await api('/api/all-scripts');_allScriptsForAuth=Array.isArray(data)?data:[];cb()}catch{cb()}}
+function editUserForm(id){const u=allUsersList.find(u=>u.id===id);if(!u){toast('用户信息未找到','error');return}editingUserId=id;document.getElementById('userFormTitle').textContent='编辑用户';document.getElementById('ufUsername').value=u.username||'';document.getElementById('ufPassword').value='';document.getElementById('ufDisplayName').value=u.displayName||'';document.getElementById('ufPhone').value=u.phone||'';document.getElementById('ufEmail').value=u.email||'';document.getElementById('ufIsSuperAdmin').checked=!!u.isSuperAdmin;renderUserFormRoleSelect();const userRoleIds=(u.roles||[]).map(r=>r.id);const sel=document.getElementById('ufRole');Array.from(sel.options).forEach(opt=>{opt.selected=userRoleIds.includes(parseInt(opt.value))});document.getElementById('ufEnabled').checked=u.isActive!==false;document.getElementById('ufPasswordGroup').style.display='';loadAllScriptsForAuth(()=>renderScriptAuthGrid('ufScriptAuthGrid',u.authorizedScriptNames||[]));document.getElementById('userFormModal').classList.add('show')}
+async function saveUserForm(){const username=document.getElementById('ufUsername').value.trim();const password=document.getElementById('ufPassword').value;const displayName=document.getElementById('ufDisplayName').value.trim();const phone=document.getElementById('ufPhone').value.trim();const email=document.getElementById('ufEmail').value.trim();const isSuperAdmin=document.getElementById('ufIsSuperAdmin').checked;const roleIds=Array.from(document.getElementById('ufRole').selectedOptions).map(opt=>parseInt(opt.value));const authorizedScriptNames=getScriptAuthSelected('ufScriptAuthGrid');const isActive=document.getElementById('ufEnabled').checked;if(!username){return toast('请输入用户名','error')}if(!editingUserId&&!password){return toast('请输入密码','error')}const body={username,displayName,phone,email,isSuperAdmin,isActive,roleIds,authorizedScriptNames};if(password)body.password=password;try{if(editingUserId){await api(`/api/users/${editingUserId}`,{method:'PUT',body});toast('用户已更新','success')}else{await api('/api/users',{method:'POST',body});toast('用户已创建','success')}closeUserFormModal();await loadUsersList()}catch(e){toast('保存失败: '+e.message,'error')}}
 async function deleteUser(id){if(!confirm('确定删除该用户？'))return;try{await api(`/api/users/${id}`,{method:'DELETE'});toast('用户已删除','success');await loadUsersList()}catch(e){toast('删除失败: '+e.message,'error')}}
 
 function openRoleFormModal(){editingRoleId=null;document.getElementById('roleFormTitle').textContent='新增角色';document.getElementById('rfName').value='';document.getElementById('rfDesc').value='';renderPermCheckboxes([]);document.getElementById('roleFormModal').classList.add('show')}
@@ -2500,6 +2751,76 @@ function renderPermCheckboxes(selectedPermIds){const grid=document.getElementByI
 function editRoleForm(id){const r=allRolesList.find(r=>r.id===id);if(!r){toast('角色信息未找到','error');return}editingRoleId=id;document.getElementById('roleFormTitle').textContent='编辑角色';document.getElementById('rfName').value=r.name||'';document.getElementById('rfDesc').value=r.description||'';const permIds=(r.permissions||[]).map(p=>p.id);renderPermCheckboxes(permIds);document.getElementById('roleFormModal').classList.add('show')}
 async function saveRoleForm(){const name=document.getElementById('rfName').value.trim();const description=document.getElementById('rfDesc').value.trim();const permissionIds=Array.from(document.querySelectorAll('#rfPermsGrid input:checked')).map(cb=>parseInt(cb.value));if(!name){return toast('请输入角色名','error')}const body={name,description,permissionIds};try{if(editingRoleId){await api(`/api/roles/${editingRoleId}`,{method:'PUT',body});toast('角色已更新','success')}else{await api('/api/roles',{method:'POST',body});toast('角色已创建','success')}closeRoleFormModal();await loadRolesList()}catch(e){toast('保存失败: '+e.message,'error')}}
 async function deleteRole(id){if(!confirm('确定删除该角色？'))return;try{await api(`/api/roles/${id}`,{method:'DELETE'});toast('角色已删除','success');await loadRolesList()}catch(e){toast('删除失败: '+e.message,'error')}}
-</script>
+
+let _sliderVerified=false;
+let _regSliderVerified=false;
+let _sliderDragging=false;
+let _sliderStartX=0;
+let _sliderThumbStart=0;
+let _sliderTarget='';
+function initSlider(){setupSlider('sliderThumb','sliderTrack','sliderFill','sliderText','sliderCaptcha','login');setupSlider('regSliderThumb','regSliderTrack','regSliderFill','regSliderText','regSliderCaptcha','register')}
+function setupSlider(thumbId,trackId,fillId,textId,captchaId,target){const thumb=document.getElementById(thumbId);const track=document.getElementById(trackId);if(!thumb||!track)return;thumb.addEventListener('mousedown',e=>{if((target==='login'?_sliderVerified:_regSliderVerified))return;_sliderDragging=true;_sliderTarget=target;_sliderStartX=e.clientX;_sliderThumbStart=thumb.offsetLeft;e.preventDefault()});thumb.addEventListener('touchstart',e=>{if((target==='login'?_sliderVerified:_regSliderVerified))return;_sliderDragging=true;_sliderTarget=target;_sliderStartX=e.touches[0].clientX;_sliderThumbStart=thumb.offsetLeft;e.preventDefault()},{passive:false});document.addEventListener('mousemove',e=>{if(!_sliderDragging||_sliderTarget!==target)return;onSliderMove(e.clientX,thumbId,trackId,fillId,textId,captchaId,target)});document.addEventListener('touchmove',e=>{if(!_sliderDragging||_sliderTarget!==target)return;onSliderMove(e.touches[0].clientX,thumbId,trackId,fillId,textId,captchaId,target)},{passive:false});document.addEventListener('mouseup',()=>{if(_sliderTarget===target)_sliderDragging=false});document.addEventListener('touchend',()=>{if(_sliderTarget===target)_sliderDragging=false})}
+function onSliderMove(clientX,thumbId,trackId,fillId,textId,captchaId,target){const thumb=document.getElementById(thumbId);const track=document.getElementById(trackId);const fill=document.getElementById(fillId);if(!thumb||!track)return;const trackWidth=track.offsetWidth;const thumbWidth=thumb.offsetWidth;const maxLeft=trackWidth-thumbWidth;let delta=clientX-_sliderStartX;let newLeft=Math.max(0,Math.min(maxLeft,_sliderThumbStart+delta));thumb.style.left=newLeft+'px';fill.style.width=(newLeft+thumbWidth)+'px';if(newLeft>=maxLeft-4){if(target==='login')_sliderVerified=true;else _regSliderVerified=true;thumb.style.left=maxLeft+'px';fill.style.width=trackWidth+'px';document.getElementById(textId).textContent='✓ 验证成功';document.getElementById(captchaId).classList.add('success');thumb.innerHTML='✓';_sliderDragging=false}}
+function resetSlider(){_sliderVerified=false;_regSliderVerified=false;['slider','regSlider'].forEach(p=>{const thumb=document.getElementById(p+'Thumb');const fill=document.getElementById(p+'Fill');const text=document.getElementById(p+'Text');const captcha=document.getElementById(p+'Captcha');if(thumb){thumb.style.left='0px';thumb.innerHTML='▶'}if(fill)fill.style.width='0px';if(text)text.textContent='👉 拖动滑块验证';if(captcha)captcha.classList.remove('success')})}
+function resetLoginSlider(){_sliderVerified=false;const thumb=document.getElementById('sliderThumb');const fill=document.getElementById('sliderFill');const text=document.getElementById('sliderText');const captcha=document.getElementById('sliderCaptcha');if(thumb){thumb.style.left='0px';thumb.innerHTML='▶'}if(fill)fill.style.width='0px';if(text)text.textContent='👉 拖动滑块验证';if(captcha)captcha.classList.remove('success')}
+function resetRegSlider(){_regSliderVerified=false;const thumb=document.getElementById('regSliderThumb');const fill=document.getElementById('regSliderFill');const text=document.getElementById('regSliderText');const captcha=document.getElementById('regSliderCaptcha');if(thumb){thumb.style.left='0px';thumb.innerHTML='▶'}if(fill)fill.style.width='0px';if(text)text.textContent='👉 拖动滑块验证';if(captcha)captcha.classList.remove('success')}
+
+function showLoginForm(){document.getElementById('loginFormArea').style.display='';document.getElementById('registerFormArea').style.display='none';document.getElementById('loginSub').textContent='请登录以继续';document.getElementById('loginError').textContent='';resetSlider()}
+function showRegisterForm(){document.getElementById('loginFormArea').style.display='none';document.getElementById('registerFormArea').style.display='';document.getElementById('loginSub').textContent='注册新账号';document.getElementById('regError').textContent='';document.getElementById('regUsername').value='';document.getElementById('regPassword').value='';document.getElementById('regPassword2').value='';document.getElementById('regPhone').value='';document.getElementById('regEmail').value='';document.getElementById('regPhoneHint').style.display='none';document.getElementById('regEmailHint').style.display='none';document.getElementById('regSmsCodeGroup').style.display='none';document.getElementById('regEmailCodeGroup').style.display='none';document.getElementById('regSmsCode').value='';document.getElementById('regEmailCode').value='';document.getElementById('regSendSmsBtn').style.display='none';document.getElementById('regSendEmailBtn').style.display='none';resetRegSlider()}
+
+let _regSmsCountdown=0;
+let _regEmailCountdown=0;
+let _regSmsTimer=null;
+let _regEmailTimer=null;
+
+document.getElementById('regPhone').addEventListener('input',()=>{const v=document.getElementById('regPhone').value.trim();const btn=document.getElementById('regSendSmsBtn');const hint=document.getElementById('regPhoneHint');hint.style.display='none';if(v&&isValidPhone(v)){btn.style.display=''}else{btn.style.display='none'}});
+document.getElementById('regPhone').addEventListener('blur',()=>{const v=document.getElementById('regPhone').value.trim();const hint=document.getElementById('regPhoneHint');if(v&&!isValidPhone(v)){hint.textContent='请输入正确的手机号';hint.style.display=''}else{hint.style.display='none'}});
+document.getElementById('regEmail').addEventListener('input',()=>{const v=document.getElementById('regEmail').value.trim();const btn=document.getElementById('regSendEmailBtn');const hint=document.getElementById('regEmailHint');hint.style.display='none';if(v&&isValidEmail(v)){btn.style.display=''}else{btn.style.display='none'}});
+document.getElementById('regEmail').addEventListener('blur',()=>{const v=document.getElementById('regEmail').value.trim();const hint=document.getElementById('regEmailHint');if(v&&!isValidEmail(v)){hint.textContent='请输入正确的邮箱';hint.style.display=''}else{hint.style.display='none'}});
+
+async function regSendSmsCode(){const phone=document.getElementById('regPhone').value.trim();if(!isValidPhone(phone)){return toast('请输入正确的手机号','error')}if(_regSmsCountdown>0)return;try{const data=await api('/api/verify/sms',{method:'POST',body:{phone}});if(data.ok){toast(data.message+(data.demoCode?' 验证码: '+data.demoCode:''),'success');_regSmsCountdown=60;const btn=document.getElementById('regSendSmsBtn');btn.disabled=true;btn.textContent=_regSmsCountdown+'s';_regSmsTimer=setInterval(()=>{_regSmsCountdown--;if(_regSmsCountdown<=0){clearInterval(_regSmsTimer);_regSmsTimer=null;btn.disabled=false;btn.textContent='发送验证码'}else{btn.textContent=_regSmsCountdown+'s'}},1000);document.getElementById('regSmsCodeGroup').style.display='';document.getElementById('regSmsCode').value='';document.getElementById('regPhoneHint').style.display='none'}else{toast(data.error||'发送失败','error')}}catch(e){toast('发送失败: '+e.message,'error')}}
+async function regSendEmailCode(){const email=document.getElementById('regEmail').value.trim();if(!isValidEmail(email)){return toast('请输入正确的邮箱','error')}if(_regEmailCountdown>0)return;try{const data=await api('/api/verify/email',{method:'POST',body:{email}});if(data.ok){toast(data.message+(data.demoCode?' 验证码: '+data.demoCode:''),'success');_regEmailCountdown=60;const btn=document.getElementById('regSendEmailBtn');btn.disabled=true;btn.textContent=_regEmailCountdown+'s';_regEmailTimer=setInterval(()=>{_regEmailCountdown--;if(_regEmailCountdown<=0){clearInterval(_regEmailTimer);_regEmailTimer=null;btn.disabled=false;btn.textContent='发送验证码'}else{btn.textContent=_regEmailCountdown+'s'}},1000);document.getElementById('regEmailCodeGroup').style.display='';document.getElementById('regEmailCode').value='';document.getElementById('regEmailHint').style.display='none'}else{toast(data.error||'发送失败','error')}}catch(e){toast('发送失败: '+e.message,'error')}}
+
+async function doRegister(){const username=document.getElementById('regUsername').value.trim();const password=document.getElementById('regPassword').value;const password2=document.getElementById('regPassword2').value;const phone=document.getElementById('regPhone').value.trim();const email=document.getElementById('regEmail').value.trim();if(!username){document.getElementById('regError').textContent='请输入用户名';return}if(!password){document.getElementById('regError').textContent='请输入密码';return}if(password.length<6){document.getElementById('regError').textContent='密码长度不能少于6位';return}if(password!==password2){document.getElementById('regError').textContent='两次输入的密码不一致';return}if(phone&&!isValidPhone(phone)){document.getElementById('regError').textContent='请输入正确的手机号';return}if(email&&!isValidEmail(email)){document.getElementById('regError').textContent='请输入正确的邮箱';return}if(phone&&isValidPhone(phone)){const smsCode=document.getElementById('regSmsCode').value.trim();if(!smsCode){document.getElementById('regError').textContent='绑定手机号需要输入验证码';return}}if(email&&isValidEmail(email)){const emailCode=document.getElementById('regEmailCode').value.trim();if(!emailCode){document.getElementById('regError').textContent='绑定邮箱需要输入验证码';return}}if(!_regSliderVerified){document.getElementById('regError').textContent='请先完成滑块验证';return}const btn=document.getElementById('regBtn');btn.disabled=true;btn.textContent='注册中...';const body={username,password,phone,email};if(phone&&isValidPhone(phone))body.smsCode=document.getElementById('regSmsCode').value.trim();if(email&&isValidEmail(email))body.emailCode=document.getElementById('regEmailCode').value.trim();try{const data=await api('/api/auth/register',{method:'POST',body});if(data.ok){toast('注册成功，请登录','success');showLoginForm();document.getElementById('loginUsername').value=username;document.getElementById('loginPassword').value=''}else{document.getElementById('regError').textContent=data.error||'注册失败';resetRegSlider()}}catch(e){document.getElementById('regError').textContent=e.message||'注册失败';resetRegSlider()}finally{btn.disabled=false;btn.textContent='注 册'}}
+
+let _profileActiveTab='info';
+function switchProfileTab(tab,el){_profileActiveTab=tab;document.querySelectorAll('#profileTabs .um-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('#profileInfoPanel,#profilePasswordPanel').forEach(p=>p.classList.remove('active'));el.classList.add('active');document.getElementById(tab==='info'?'profileInfoPanel':'profilePasswordPanel').classList.add('active')}
+function openProfileModal(){if(!currentUser)return;document.getElementById('pfUsername').value=currentUser.username||'';document.getElementById('pfDisplayName').value=currentUser.displayName||'';document.getElementById('pfOldPassword').value='';document.getElementById('pfNewPassword').value='';document.getElementById('pfNewPassword2').value='';document.getElementById('pfPhoneHint').style.display='none';document.getElementById('pfEmailHint').style.display='none';document.getElementById('pfSmsCodeGroup').style.display='none';document.getElementById('pfEmailCodeGroup').style.display='none';document.getElementById('pfSmsCode').value='';document.getElementById('pfEmailCode').value='';_pfPhoneEditing=false;_pfEmailEditing=false;resetProfilePhoneState();resetProfileEmailState();_profileActiveTab='info';document.querySelectorAll('#profileTabs .um-tab').forEach(t=>t.classList.remove('active'));document.querySelector('#profileTabs .um-tab').classList.add('active');document.getElementById('profileInfoPanel').classList.add('active');document.getElementById('profilePasswordPanel').classList.remove('active');document.getElementById('profileModal').classList.add('show')}
+function closeProfileModal(){document.getElementById('profileModal').classList.remove('show')}
+
+let _pfPhoneEditing=false;
+let _pfEmailEditing=false;
+let _smsCountdown=0;
+let _emailCountdown=0;
+let _smsTimer=null;
+let _emailTimer=null;
+
+function isValidPhone(v){return /^1[3-9]\d{9}$/.test(v)}
+function isValidEmail(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)}
+
+function resetProfilePhoneState(){const phone=currentUser.phone||'';const inp=document.getElementById('pfPhone');const sendBtn=document.getElementById('pfSendSmsBtn');const updateBtn=document.getElementById('pfUpdatePhoneBtn');inp.value=phone;inp.disabled=!!phone;inp.style.opacity=phone?'0.6':'';sendBtn.style.display='none';updateBtn.style.display=phone?'':'none';if(!phone){inp.disabled=false;inp.style.opacity='';updateBtn.style.display='none';sendBtn.style.display=''}document.getElementById('pfSmsCodeGroup').style.display='none';document.getElementById('pfPhoneHint').style.display='none';if(_smsTimer){clearInterval(_smsTimer);_smsTimer=null}_smsCountdown=0;sendBtn.disabled=false;sendBtn.textContent='发送验证码'}
+
+function resetProfileEmailState(){const email=currentUser.email||'';const inp=document.getElementById('pfEmail');const sendBtn=document.getElementById('pfSendEmailBtn');const updateBtn=document.getElementById('pfUpdateEmailBtn');inp.value=email;inp.disabled=!!email;inp.style.opacity=email?'0.6':'';sendBtn.style.display='none';updateBtn.style.display=email?'':'none';if(!email){inp.disabled=false;inp.style.opacity='';updateBtn.style.display='none';sendBtn.style.display=''}document.getElementById('pfEmailCodeGroup').style.display='none';document.getElementById('pfEmailHint').style.display='none';if(_emailTimer){clearInterval(_emailTimer);_emailTimer=null}_emailCountdown=0;sendBtn.disabled=false;sendBtn.textContent='发送验证码'}
+
+function startEditPhone(){_pfPhoneEditing=true;const inp=document.getElementById('pfPhone');inp.value='';inp.disabled=false;inp.style.opacity='';inp.focus();document.getElementById('pfSendSmsBtn').style.display='none';document.getElementById('pfUpdatePhoneBtn').style.display='none';document.getElementById('pfSmsCodeGroup').style.display='none';document.getElementById('pfPhoneHint').style.display='none';document.getElementById('pfSmsCode').value=''}
+
+function startEditEmail(){_pfEmailEditing=true;const inp=document.getElementById('pfEmail');inp.value='';inp.disabled=false;inp.style.opacity='';inp.focus();document.getElementById('pfSendEmailBtn').style.display='none';document.getElementById('pfUpdateEmailBtn').style.display='none';document.getElementById('pfEmailCodeGroup').style.display='none';document.getElementById('pfEmailHint').style.display='none';document.getElementById('pfEmailCode').value=''}
+
+document.getElementById('pfPhone').addEventListener('input',()=>{const v=document.getElementById('pfPhone').value.trim();const sendBtn=document.getElementById('pfSendSmsBtn');const hint=document.getElementById('pfPhoneHint');hint.style.display='none';if(v&&isValidPhone(v)){sendBtn.style.display='';_pfPhoneEditing=true}else{sendBtn.style.display='none'}});
+document.getElementById('pfPhone').addEventListener('blur',()=>{const v=document.getElementById('pfPhone').value.trim();const hint=document.getElementById('pfPhoneHint');if(_pfPhoneEditing&&v&&!isValidPhone(v)){hint.textContent='请输入正确的手机号';hint.style.display=''}else{hint.style.display='none'}});
+document.getElementById('pfEmail').addEventListener('input',()=>{const v=document.getElementById('pfEmail').value.trim();const sendBtn=document.getElementById('pfSendEmailBtn');const hint=document.getElementById('pfEmailHint');hint.style.display='none';if(v&&isValidEmail(v)){sendBtn.style.display='';_pfEmailEditing=true}else{sendBtn.style.display='none'}});
+document.getElementById('pfEmail').addEventListener('blur',()=>{const v=document.getElementById('pfEmail').value.trim();const hint=document.getElementById('pfEmailHint');if(_pfEmailEditing&&v&&!isValidEmail(v)){hint.textContent='请输入正确的邮箱';hint.style.display=''}else{hint.style.display='none'}});
+
+async function sendSmsCode(){const phone=document.getElementById('pfPhone').value.trim();if(!isValidPhone(phone)){return toast('请输入正确的手机号','error')}if(_smsCountdown>0)return;try{const data=await api('/api/verify/sms',{method:'POST',body:{phone}});if(data.ok){toast(data.message+(data.demoCode?' 验证码: '+data.demoCode:''),'success');_smsCountdown=60;const btn=document.getElementById('pfSendSmsBtn');btn.disabled=true;btn.textContent=_smsCountdown+'s';_smsTimer=setInterval(()=>{_smsCountdown--;if(_smsCountdown<=0){clearInterval(_smsTimer);_smsTimer=null;btn.disabled=false;btn.textContent='发送验证码'}else{btn.textContent=_smsCountdown+'s'}},1000);document.getElementById('pfSmsCodeGroup').style.display='';document.getElementById('pfSmsCode').value='';document.getElementById('pfPhoneHint').style.display='none'}else{toast(data.error||'发送失败','error')}}catch(e){toast('发送失败: '+e.message,'error')}}
+async function sendEmailCode(){const email=document.getElementById('pfEmail').value.trim();if(!isValidEmail(email)){return toast('请输入正确的邮箱','error')}if(_emailCountdown>0)return;try{const data=await api('/api/verify/email',{method:'POST',body:{email}});if(data.ok){toast(data.message+(data.demoCode?' 验证码: '+data.demoCode:''),'success');_emailCountdown=60;const btn=document.getElementById('pfSendEmailBtn');btn.disabled=true;btn.textContent=_emailCountdown+'s';_emailTimer=setInterval(()=>{_emailCountdown--;if(_emailCountdown<=0){clearInterval(_emailTimer);_emailTimer=null;btn.disabled=false;btn.textContent='发送验证码'}else{btn.textContent=_emailCountdown+'s'}},1000);document.getElementById('pfEmailCodeGroup').style.display='';document.getElementById('pfEmailCode').value='';document.getElementById('pfEmailHint').style.display='none'}else{toast(data.error||'发送失败','error')}}catch(e){toast('发送失败: '+e.message,'error')}}
+
+async function saveProfile(){if(_profileActiveTab==='password'){const oldPwd=document.getElementById('pfOldPassword').value;const newPwd=document.getElementById('pfNewPassword').value;const newPwd2=document.getElementById('pfNewPassword2').value;if(!oldPwd){return toast('请输入旧密码','error')}if(!newPwd){return toast('请输入新密码','error')}if(newPwd.length<6){return toast('新密码长度不能少于6位','error')}if(newPwd!==newPwd2){return toast('两次输入的新密码不一致','error')}try{const data=await api('/api/profile/password',{method:'PUT',body:{oldPassword:oldPwd,newPassword:newPwd}});if(data.ok){toast('密码修改成功','success');closeProfileModal()}else{toast(data.error||'密码修改失败','error')}}catch(e){toast('密码修改失败: '+e.message,'error')}}else{const displayName=document.getElementById('pfDisplayName').value.trim();const phone=document.getElementById('pfPhone').value.trim();const email=document.getElementById('pfEmail').value.trim();const body={displayName,phone,email};if(_pfPhoneEditing&&phone&&phone!==(currentUser.phone||'')){if(!isValidPhone(phone)){document.getElementById('pfPhoneHint').textContent='请输入正确的手机号';document.getElementById('pfPhoneHint').style.display='';return}const smsCode=document.getElementById('pfSmsCode').value.trim();if(!smsCode){document.getElementById('pfPhoneHint').textContent='绑定新手机号需要输入验证码';document.getElementById('pfPhoneHint').style.display='';return}body.smsCode=smsCode}if(_pfEmailEditing&&email&&email!==(currentUser.email||'')){if(!isValidEmail(email)){document.getElementById('pfEmailHint').textContent='请输入正确的邮箱';document.getElementById('pfEmailHint').style.display='';return}const emailCode=document.getElementById('pfEmailCode').value.trim();if(!emailCode){document.getElementById('pfEmailHint').textContent='绑定新邮箱需要输入验证码';document.getElementById('pfEmailHint').style.display='';return}body.emailCode=emailCode}try{const data=await api('/api/profile',{method:'PUT',body});if(data.ok){currentUser=data.user;updateUserInfo();toast('个人信息已更新','success');_pfPhoneEditing=false;_pfEmailEditing=false;resetProfilePhoneState();resetProfileEmailState()}else{toast(data.error||'更新失败','error')}}catch(e){toast('更新失败: '+e.message,'error')}}}
+
+let _scriptAuthUserId=null;
+async function openScriptAuthModal(userId){_scriptAuthUserId=userId;const u=allUsersList.find(u=>u.id===userId);if(!u){toast('用户信息未找到','error');return}document.getElementById('scriptAuthTitle').textContent=`📝 脚本授权 - ${u.username}`;await loadAllScriptsForAuth(()=>renderScriptAuthGrid('scriptAuthGrid',u.authorizedScriptNames||[]));document.getElementById('scriptAuthModal').classList.add('show')}
+function closeScriptAuthModal(){document.getElementById('scriptAuthModal').classList.remove('show');_scriptAuthUserId=null}
+async function saveScriptAuth(){if(!_scriptAuthUserId)return;const scriptNames=getScriptAuthSelected('scriptAuthGrid');try{const data=await api(`/api/users/${_scriptAuthUserId}/scripts`,{method:'PUT',body:{scriptNames}});if(data.ok){toast('脚本授权已更新','success');closeScriptAuthModal();await loadUsersList()}else{toast(data.error||'授权失败','error')}}catch(e){toast('授权失败: '+e.message,'error')}}
+
+document.addEventListener('DOMContentLoaded',()=>{initSlider()});</script>
 </body>
 </html>

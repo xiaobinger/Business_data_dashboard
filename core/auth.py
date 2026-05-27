@@ -15,8 +15,8 @@ SESSION_KEY_IS_SUPER = "is_super_admin"
 SESSION_KEY_LAST_ACTIVITY = "last_activity"
 
 
-def login_user(username: str, password: str) -> Optional[dict]:
-    user = meta_store.authenticate_user(username, password)
+def login_user(login_key: str, password: str) -> Optional[dict]:
+    user = meta_store.authenticate_user_multi(login_key, password)
     if not user:
         return None
     session[SESSION_KEY_USER_ID] = user["id"]

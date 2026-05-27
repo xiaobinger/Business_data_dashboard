@@ -43,6 +43,7 @@ DEFAULT_APP_CONFIG = {
     },
     "cache_ttl": 3600,
     "session_timeout": 30,
+    "loading_style": "orbit",
 }
 
 
@@ -55,6 +56,8 @@ def load_app_config():
         merged["cache_ttl"] = data["cache_ttl"]
     if "session_timeout" in data:
         merged["session_timeout"] = data["session_timeout"]
+    if "loading_style" in data:
+        merged["loading_style"] = data["loading_style"]
     return merged
 
 
